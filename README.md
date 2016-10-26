@@ -1,17 +1,20 @@
-# An Enforced Semantic Versioning for Fewer Errors in IoT Communication
+Restricting the Scope for Client Error in IoT Communication
+===========================================================
 
 With billions more IoT devices predicted to be connected every year, every
 problem in IoT is realised at large scale. The connection of so many devices
 inevitably means vendors will iteratively improve their products; change and
-improve the deployed software. However, many of the device types expected to be
-deployed will be deeply embedded in their operating context - light switches,
-concrete-borne traffic or structural sensors in roads or buildings, et cetera -
-such devices have relatively long lifetimes and may quickly be outdated, but
-continue attempting to communicate with a server using that outdated interface.
-Errors in client-originating communication with a server may be of importance,
-but invisible, to the user; the only sign of their existence lost deep in a
-server log, the contents of which the vendor might not see value in sharing with
-the end-user, or fixing on their behalf.
+improve the deployed software. This rapid iteration may easily lead to
+unintended incompatibilities between client and server APIs. Additionally, many
+of the devices expected to be deployed will be deeply embedded in their
+operating context - light switches, concrete-borne traffic or structural sensors
+in roads or buildings, et cetera - such devices have relatively long lifetimes
+and may quickly be outdated, but continue attempting to communicate with a
+server using that outdated interface. Client-originating communication with a
+server may cause errors of great concern to a user, but be visible only to a
+vendor examining a server log, who may anyway assume that the error was indeed
+"user error"; perhaps that of a developer rather than a device deployed long
+ago, expecting an older version of the server API.
 
 ## Proposal
 
