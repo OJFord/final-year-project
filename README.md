@@ -78,11 +78,22 @@ authority for the nature of the API.
 
 ### Evaluation
 
-The project's success will be demonstrated by the inability to compile client
-device software that would result in an error, through fault of the client, when
-communicating with a server at run-time. This will be shown by analysing
-automated and randomised test applications for compile-time and, if compilable,
-run-time success.
+A wholly successful implementation would be unable to compile any program that
+would then fail at runtime due to a fault of the client in communicating with a
+server. It is not expected that the implementation would progress that far, or
+even necessarily that the investigation will discover such a thing to be
+possible.
+
+Thus, the project can instead be evaluated by considering an enumeration of the
+possible ways in which communication could fail with the client at fault, and
+whether the project has been able to address or prevent each possibility.
+
+As part of the project, a system will be created for attempting to compile and
+run test programs with some randomised variations designed to target areas that
+could cause a client error at runtime. The project will analyse which and how
+many of these successfully compiled, and the run-time behaviour. In line with
+the high-level goal of the project, success would be shown as the minimisation
+of error classes that compiled successfully and erred at run-time.
 
 ### (Rough) Timetable
 
