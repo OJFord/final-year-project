@@ -111,8 +111,5 @@ of error classes that compiled successfully and erred at run-time.
 
 ### Cost & Requirements
 
-There should be no particular hardware required. Real devices may be useful for
-testing, but existing devices or software can be used. Testing may be easier
-against some external infrastructure, such as AWS, in which case some small cost
-may be incurred - though a certain quota for students is available free of
-charge.
+None expected, beyond perhaps AWS use within the quota freely available to
+students.
