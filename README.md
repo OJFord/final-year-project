@@ -97,17 +97,17 @@ of error classes that compiled successfully and erred at run-time.
 
 ### (Rough) Timetable
 
-  Milestone                                                 When
-  ------------------------------------------------------- ---------
-  Established clear idea for 'compilation against API'     Dec '16
-  Established clear test strategy                          Dec '16
-  Implemented server API contract                          Feb '17
-  Implemented test suite                                   Mar '17
-  Implemented client API contract checking                 Mar '17
-  Established clear idea for stateful session extension    Apr '17
-  -- (Exams)                                               May '17
-  Implemented stateful sessions                            Jun '17
-  Finalise analysis/report                                 Jun '17
+| Milestone                                             |   When  |
+|-------------------------------------------------------|:-------:|
+| Established clear idea for 'compilation against API'  | Dec '16 |
+| Established clear test strategy                       | Dec '16 |
+| Implemented server API contract                       | Feb '17 |
+| Implemented test suite                                | Mar '17 |
+| Implemented client API contract checking              | Mar '17 |
+| Established clear idea for stateful session extension | Apr '17 |
+| -- (Exams)                                            | May '17 |
+| Implemented stateful sessions                         | Jun '17 |
+| Finalise analysis/report                              | Jun '17 |
 
 ### Cost & Requirements
 
