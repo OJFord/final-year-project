@@ -77,3 +77,6 @@ and comparing against the types of data given in the language being checked.
 Alternatively, something like [JSON-Schema](https://json-schema.org/) could be
 used, which has some traction already, and could be inspected for or extended to
 include types.
+
+The example program above would error for each key in the data sent, since the
+schema expects no data to accompany a `GET` request.
