@@ -1,5 +1,87 @@
-Outline of a Checker for API-Consumer
+Outline of the Client Program-Checker
 =====================================
+
+The program checker must be designed in a way so as to be runnable at
+compile-time. It should inspect HTTP (and perhaps other protocol) requests for
+compliance with a schema found to match the requested URL, and determine as far
+as possible whether and why the request would fail at run-time. This will
+involve checking of (likely constant) parameters such as the request method
+(`GET`, `PATCH`, et al.) and type-checking variable data used for e.g. updating
+resource attributes.
+
+The table below enumerates the 'official' (the specification allows for custom
+extension, e.g. nginx adds a couple) HTTP client errors (`4xx` status codes),
+and the proposed method for determining they will occur.
+
+  --------------------------------------------------------------------------------
+  Code   Description                 Detection
+  ------ --------------------------- ---------------------------------------------
+  400    Bad Request                 No unification of request and schema data
+
+  401    Unauthorized                Partially detectable by typing the session
+
+  402    Payment Required            Not detectable
+
+  403    Forbidden                   Not detectable
+
+  404    Not Found                   Schema not found; URI not in schema
+
+  405    Method Not Allowed          Method not in schema\[URI\]
+
+  406    Not Acceptable              Accept header or return type not in schema
+
+  407    Proxy Authentication        Partially detectable by typing the session
+         Required                    
+
+  408    Request Timeout             Not detectable
+
+  409    Conflict                    Not detectable
+
+  410    Gone                        URI not in schema
+
+  411    Length Required             Missing Content-Length required by schema
+
+  412    Precondition Failed         Partially detectable by typing the session
+
+  413    Payload Too Large           Partially detectable by examining constant
+                                     data
+
+  414    Request-URI Too Long        Extra query parameters not accepted by schema
+
+  415    Unsupported Media Type      Content-\* headers or data type not in schema
+
+  416    Requested Range Not         Not detectable
+         Satisfiable                 
+
+  417    Expectation Failed          Not detectable
+
+  418    I'm a teapot                Umm... Not detectable
+
+  421    Misdirected Request         Method & URI combination not in schema
+
+  422    Unprocessable Entity        Not detectable
+
+  423    Locked                      Type session, acquire precondition first
+
+  424    Failed Dependency           Implicitly prevented if entire call-chain
+                                     checks
+
+  426    Upgrade Required            Protocol does not match that required by
+                                     schema
+
+  428    Precondition Required       Type session, match schema
+
+  429    Too Many Requests           Not detectable
+
+  431    Request Header Fields Too   Partially detectable by examining constant
+         Large                       data
+
+  451    Unavailable For Legal       Not detectable
+         Reasons                     
+  --------------------------------------------------------------------------------
+
+Example
+-------
 
 Given some program making HTTP request to a remote service:
 
