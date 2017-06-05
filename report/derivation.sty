@@ -1,0 +1,294 @@
+% This package is Steffen van Bakel's derivation, obtained from:
+%	https://www.doc.ic.ac.uk/~svb/TSfPL/derivation.sty
+
+% { [ (
+% This package is built on top of Paul Taylor's prooftrees
+
+\usepackage{prooftree}
+
+% the scale of the derivation is in font one size smaller than the document, and is 
+%  set by the size option for the file. You can change it physically below
+
+% The main macros defined here are to be used inside \[ \] (if you like within  
+% (array} and can be nested; they are \Inf, \INF, and \InfBox
+%
+% \Inf is called as \Inf { Conclusion } which produces
+%
+% 			-----------
+% 			Conclusion
+%
+% \Inf [ Rule ]{ Conclusion } which produces
+%
+% 			----------- (Rule)
+% 			Conclusion
+%
+% \Inf { Premisse }{ Conclusion }
+%
+%			 Premisse
+% 			---------- 
+% 			Conclusion
+%
+% \Inf [ Rule ]{ Premisse }{ Conclusion } (or
+% 	\Inf	[ Rule ] 
+%		{ Premisse 
+%		}{ Conclusion }
+%) produces
+%
+%			 Premisse
+% 			---------- (Rule)
+% 			Conclusion
+%
+% \INF does the same as \Inf, but places the [ Rule ] parameter below the 
+%  derivation; handy when specifying a rule with a large side condition
+%
+% and \InfBox which does the same as \Inf but has no premise and draws a box
+% above the conclusion and is called as
+% \InfBox{ Conclusion }
+% \InfBox[ Rule ]{ Conclusion }
+% \InfBox{ Name }{ Conclusion }
+% \InfBox{ Name }[ Rule ]{ Conclusion } 
+%
+% the last options will place the Name inside the box
+
+\newskip\point
+\ifnum\@ptsize=0 \point.9pt
+\else \ifnum\@ptsize=1 \point1pt
+\else \ifnum\@ptsize=2 \point1.1pt 
+\else \point1pt 
+\fi \fi \fi
+
+% \point = % what you want: .8pt  .9pt  1pt  1.1pt 
+\point 1.1pt
+
+\setlength{\unitlength}{1\point}
+
+\ifdim \point=.8pt\typeout{derivation style: point = .8pt }
+\else \ifdim \point=.9pt\typeout{derivation style: point = .9pt }
+\else \ifdim \point=1pt \typeout{derivation style: point = 1pt }
+\else \ifdim \point=1.1pt \typeout{derivation style: point = 1.1pt }
+\fi \fi \fi \fi
+\def \skp {\hspace*{.5\point}}
+
+\def\neutral{}%{\ifmycolour\neutralcol\fi}
+
+\newdimen\RuleH 
+\newskip\adjustablepoint % \adjustablepoint
+\newif\ifconclusion\conclusionfalse
+
+\def\infRule (#1){{\tiny (#1)}}
+
+\def \DP {\copy162}
+\setbox162=\hbox{{\neutral ~\raise-2.5\adjustablepoint\copy161\kern-\wd161\raise2.5\adjustablepoint\copy161\kern.5\adjustablepoint\raise0\adjustablepoint\copy161~}}
+
+ \RuleH14.675\point
+
+\def\setfontsize{
+\ifdim \point=.8pt%
+% \typeout{point = .8pt}
+\def\derivationfont{%
+	\fontsize{8pt}{8.5pt}
+	\renewcommand\large{\@setfontsize\small\@xpt\@xpt}
+	\renewcommand\small{\@setfontsize\small\@vipt\@vipt}
+	\renewcommand\footnotesize{\@setfontsize\footnotesize\@vpt\@vipt}
+	\renewcommand\scriptsize{\@setfontsize\scriptsize\@ivpt\@vpt}
+	\renewcommand\tiny{\@setfontsize\tiny{5}{6}}
+	\def\tinyfont{\fontsize{3.6pt}{4pt}\selectfont}
+	\setbox161=\hbox{{\small $\cdot$}}
+	\setbox162=\hbox{{\neutral ~\raise-2.5\adjustablepoint\copy161\kern-\wd161\raise2.5\adjustablepoint\copy161\kern.5\adjustablepoint\raise0\adjustablepoint\copy161~}}
+}
+\else \ifdim \point=.9pt%
+% \typeout{point = .9pt}
+\def\derivationfont{%
+	\fontsize{8.25pt}{9pt}
+	\renewcommand\large{\@setfontsize\small\@xipt\@xipt}
+	\renewcommand\small{\@setfontsize\small\@viipt\@viipt}
+	\renewcommand\footnotesize{\@setfontsize\footnotesize\@vipt\@viipt}
+	\renewcommand\scriptsize{\@setfontsize\scriptsize\@vpt\@vipt}
+	\renewcommand\tiny{\@setfontsize\tiny{5.25}{6.5}}
+	\def\tinyfont{\fontsize{4pt}{4.4pt}\selectfont}
+	\setbox161=\hbox{{\small $\cdot$}}
+	\setbox162=\hbox{{\neutral ~\raise-2.5\adjustablepoint\copy161\kern-\wd161\raise2.5\adjustablepoint\copy161\kern.5\adjustablepoint\raise0\adjustablepoint\copy161~}}
+}
+\else \ifdim \point=1pt%
+% \typeout{point = 1pt}
+\def\derivationfont{%
+	\fontsize{9pt}{9.9pt}
+	\renewcommand\large{\@setfontsize\small\@xpt\@xpt}
+	\renewcommand\small{\@setfontsize\small\@viiipt\@viiipt}
+	\renewcommand\footnotesize{\@setfontsize\footnotesize\@viipt\@viiipt}
+	\renewcommand\scriptsize{\@setfontsize\scriptsize\@vipt\@viipt}
+	\renewcommand\tiny{\@setfontsize\tiny{5.75}{7}}
+	\def\tinyfont{\fontsize{5pt}{5.5pt}\selectfont}
+	\setbox161=\hbox{{\small $\cdot$}}
+	\setbox162=\hbox{{\neutral ~\raise-2.5\adjustablepoint\copy161\kern-\wd161\raise2.5\adjustablepoint\copy161\kern.5\adjustablepoint\raise0\adjustablepoint\copy161~}}
+}
+\else % \ifdim \point=1.1pt%
+% \typeout{point = 1.1pt}
+\def\derivationfont{%
+	\fontsize{\@xpt}{11pt}
+	\renewcommand\large{\@setfontsize\small\@xiipt\@xiipt}
+	\renewcommand\small{\@setfontsize\small\@ixpt\@xpt}
+	\renewcommand\footnotesize{\@setfontsize\footnotesize\@viiipt\@ixpt}
+	\renewcommand\scriptsize{\@setfontsize\scriptsize\@viipt\@viiipt}
+	\renewcommand\tiny{\@setfontsize\tiny{6}{7}}
+	\def\tinyfont{\fontsize{6pt}{6.6pt}\selectfont}
+	\setbox161=\hbox{{\small $\cdot$}}
+	\setbox162=\hbox{{\neutral ~\raise-2.25\adjustablepoint\copy161\kern-\wd161\raise2.25\adjustablepoint\copy161\kern.25\adjustablepoint \raise0\adjustablepoint\copy161~}}
+}
+\fi\fi\fi % \fi
+}% setfontsize
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ \def \RuleusingThree[#1]#2#3{\prooftree #2\justifies \conclusiontrue #3 \conclusionfalse \using {\mbox {\small $(#1)$}} \endprooftree}
+ \def \Ruleusing[#1]#2{\@ifnextchar\bgroup 
+ 	{\RuleusingThree[{#1}]{#2}}%
+ 	{\prooftree \justifies \conclusiontrue #2 \conclusionfalse \using {\mbox {\small $(#1)$}}
+	 \endprooftree}}
+ \def \RulenotusingTwo#1#2{%
+\prooftree #1 \justifies \conclusiontrue #2 \conclusionfalse\endprooftree}
+ \def \Rulenotusing#1{%
+\@ifnextchar\bgroup {\RulenotusingTwo{#1}}{\prooftree \justifies #1 \endprooftree}}
+
+ \def\Inf{
+\def\displaystyle{}
+\adjustablepoint=.9\point
+ \unitlength.14\point
+ \setfontsize
+ \def\TurnLmu{\mathrel{\Turn}} 
+ \def\TurnLmuIU{\mathrel{\Turn}} 
+ \@ifnextchar<{\moveInf}{\oldInf}}
+ 
+ \def \moveInf<#1>{\kern #1 \oldInf}
+
+ \def \oldInf{%
+	\derivationfont 
+	\proofrulebaseline=8.15\adjustablepoint
+	\abovedisplayskip12\point\belowdisplayskip12\point
+	\abovedisplayshortskip8\point\belowdisplayshortskip8\point
+	\point.975\point \@ifnextchar[{\Ruleusing}{\Rulenotusing}}%]
+ \def \inf {\Inf}
+ 
+ \def \INF[#1]#2{\@ifnextchar\bgroup
+ 	{\INFThree[{#1}]{#2}}%
+	{\Inf{#2} % 
+	\quad \\ \multicolumn{2}{r}{ \derivationfont \quad \mbox {\small $(#1)$} }}%
+}
+ 
+ \def \INFThree[#1]#2#3{%
+\begin{array}{@{}l}
+\Inf{#2}{#3} \dquad  \\ [4\point]  
+\hfill { \derivationfont \quad \mbox {\small $(#1)$} }
+ \end{array} 
+}
+
+
+ \newcount\derW
+ \newcount\hderW
+ \newcount\botW
+ \newcount\hbotW
+ \newcount\topW
+ \newcount\htopW
+ \newcount\boxshift
+% calls are either \InfBox{Stat} or \InfBox[Rule]{Stat} or \InfBox{Name}[Rule]{Stat} 
+ \def \InfBox{
+ \setfontsize
+ \@ifnextchar<{% Width
+\InfBoxWidth}{\@ifnextchar\bgroup{% Name or conclusion
+ \DBOne}{% Rule and Conclusion 
+ \DBWidthNameAndRule<>{}}}}
+ \def \DBOne#1{% parameter is name or conclusion
+	\@ifnextchar[{% Name and Rule given
+		\DBWidthNameAndRule<>{#1}}{% One parameter, but no Rule
+		\DBTwo{#1}}}
+ \def \DBTwo#1{\@ifnextchar\bgroup{% Name and Conclusion
+ 	\DBWidthNameAndRule<>{#1}[{}]}{% only Conclusion
+	\DBWidthNameAndRule<>{}[{}]{#1}}}
+
+ \def\InfBoxWidth<#1>{\@ifnextchar\bgroup{% Name or conclusion
+ \DBWidthOne<#1>}{% Rule and Conclusion 
+ \DBWidthNameAndRule<#1>{}}}
+ \def \DBWidthOne<#1>#2{% parameter is name or conclusion
+	\@ifnextchar[{% Name and Rule given
+		\DBWidthNameAndRule<#1>{#2}}{% One parameter, but no Rule
+		\DBWidthTwo<#1>{#2}}}
+ \def \DBWidthTwo<#1>#2{\@ifnextchar\bgroup{% Name and Conclusion
+ 	\DBWidthNameAndRule<#1>{#2}[{}]}{% only Conclusion
+	\DBWidthNameAndRule<#1>{}[{}]{#2}}}
+
+
+\newcount\boxwidth
+\newcount\sboxwidth
+
+ \def \DBWidthNameAndRule<#1>#2[#3]#4{%
+{% \derivationfont 
+\unitlength.14pt % \adjustablepoint
+%
+\def\argone{#1}
+\def\argtwo{#2}
+\def\argthree{#3}%
+\def\argfour{#4}%
+\ifx\argfour\empty %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\derW260\hderW130
+\topW260\htopW130
+\botW200\hbotW100
+\begin {picture}(\derW,151.5)(-\hderW,0)
+ \put(0,0)	{%\psset{unit=1.1\unitlength,linewidth=0.7\point}%
+\begin{picture}(0,49.5)(0,-1.5)
+%	\put(0,25){.}
+% draw the four lines of the box
+	\put(-\htopW,122.5)	{\line(1,0){\topW}}
+	\put(-\htopW,122.5)	{\line(1,-4){23}}
+	\put(\htopW,122.5)	{\line(-1,-4){23}}
+	\put(-\hbotW,6)	{\line(1,0){\botW}}
+% put the name of the derivation
+	\put(0,60)	{\makebox(0,0){\mbox{$\argtwo$}}}
+% put the conclusion of the derivation
+ \end{picture}}%
+\end {picture}
+%
+\else%%%%  \argfour not \empty  %%%%%%%%%%%%%%%%%%%%%
+%
+\setbox122=\hbox{$\argthree$}%
+\setbox123=\hbox{$\argfour$}%
+\ifx \argone \empty 
+	\botW\wd123
+	\divide \botW \unitlength
+	\divide \botW 10 \multiply \botW 10 % 
+\else	\botW\argone \multiply\botW 100 % \sboxwidth\boxW \advance\sboxwidth-3
+\fi
+\derW \botW 
+\hderW \derW \advance \botW 10 \divide \hderW2% 
+\advance \botW-40 \hbotW \botW \divide \hbotW2% 
+\htopW \hbotW \advance \htopW18%
+\topW \htopW \multiply \topW2%
+%%%%%%%%%%%%%%%%%%%%%%%%
+\ifconclusion
+\begin {picture}(\derW, 141)(-\hderW,0)
+\else
+\begin {picture}(\derW,175)(-\hderW,0)
+\fi
+ \put(0,49.5)	{%\psset{unit=1\unitlength,linewidth=0.45\point}
+%\ifmycolour\psset{linecolor=blue}\fi%
+\begin{picture}(0,0)(0,-2)
+% draw the four lines of the box
+	\put(-\htopW,115)	{\line(1,0){\topW}}
+	\put(-\htopW,115)	{\line(1,-4){23}}
+	\put(\htopW,115)	{\line(-1,-4){23}}
+	\put(-\hbotW,20)	{\line(1,0){\botW}}
+% put the rule if needed
+	\ifx\argthree\empty {} \else { \put(\hbotW,-6)	{\put(25,0){\small $(\argthree)$}} } \fi
+% put the name of the derivation
+	\put(0,70)	{\makebox(0,0){\mbox{\footnotesize $\argtwo$}}}
+% put the conclusion of the derivation
+	\put(0,-68)	{\makebox(0,60){\box123}}
+ \end{picture}}%
+\end {picture}
+%%%%%%%%%%%%%%%%%%%%%
+%
+\fi%% \ifx\argfour\empty %%%%%%%%%%%%%%%%%%%%
+}}
+
+\setlength {\unitlength} {1\point}%{6.7\point }
+ % ) ] }

@@ -1,0 +1,83 @@
+\documentclass{article}
+
+% local
+\usepackage{derivation}
+%
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[backend=biber]{biblatex}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{chngpage}
+\usepackage[shortlabels]{enumitem}
+\usepackage[T1]{fontenc}
+\usepackage{footnote}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage[newfloat]{minted}
+\usepackage{placeins}
+\usepackage{xparse}
+
+\newtheorem{defn}{Definition}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\NewDocumentEnvironment{codelisting}{mm}{\captionsetup{type=listing}
+}{
+\captionof{listing}{\emph{#2}}
+\label{#1}
+}
+\NewDocumentEnvironment{task}{}{
+\begin{table}[!h]\rule{\columnwidth}{0.5pt}
+\begin{tabular}{lp{.8\columnwidth}}
+}{
+\end{tabular}
+\rule{\columnwidth}{0.5pt}
+\end{table}
+}
+\newcommand{\taskschedule}[1]{\textbf{Schedule}: & #1 \\}
+\newcommand{\taskrisks}[1]{\textbf{Risks}: & #1 \\}
+
+\addbibresource{Zotero.bib}
+
+\title{Static analysis for API error detection in IoT devices}
+\author{Oliver J. Ford}
+\def\supervisor{Dr Thomas Clarke}
+\def\secondmarker{TBD}
+\def\course{EIE4}
+\def\cid{00827337}
+\newif\ifinterim
+\interimfalse
+
+\setlength{\parskip}{.5em}
+
+\begin{document}
+\include{coversheet}
+
+\FloatBarrier
+\section{Problem}\label{problem}
+{\input{problem}}
+\FloatBarrier
+
+\FloatBarrier
+\section{Specification}\label{spec}
+{\input{specification}}
+\FloatBarrier
+
+\FloatBarrier
+\section{Background}\label{background}
+{\input{background}}
+\FloatBarrier
+
+\FloatBarrier
+\section{Implementation Plan}\label{plan-impl}
+{\input{implementation}}
+\FloatBarrier
+
+\FloatBarrier
+\section{Evaluation Plan}\label{plan-eval}
+{\input{evaluation}}
+\FloatBarrier
+
+\printbibliography
+\end{document}

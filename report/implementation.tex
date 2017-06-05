@@ -1,0 +1,97 @@
+\subsection{Proposed solution}
+The Open API Specification (cf.~\ref{OAS}) will be used as the dialect of schema against which to validate client device programs. OAS is chosen as it is more expressive than JSON Hyper-Schema, which lacks a description of response types, required authentication, or other features found in the former. Knowing the response types will allow typing the result as used by the client in some cases, and knowledge of which endpoints require authentication will be necessary for a useful analysis of a multi-request session. OAS (and presently Swagger) also appears to be much more widely used than Hyper-Schema \cite{anyone_use_hyperschema} with an existing rich ecosystem of open-source validators and stub generators \cite{swagger_oss}.\label{proposal-schema}
+
+We will target Rust as the language of client device programs, as it is something of an `emerging market' for embedded software, and offers a much richer type system than C or C++ (which would be the viable alternatives) that we can leverage to describe a REST API.\label{proposal-lang}
+
+Given a schema for correct consumption of an API, there are three models for how we might go about validation:
+\begin{enumerate}
+	\item Wait for type-checking to complete; then inspect the resulting IR (cf.~\ref{rust-mir}) for HTTP requests, match constant URL strings against a schema, together with the types therein.
+	\item With a schema file as user input, infer a set of types and traits that represent valid use of the API; then let the compiler work as normal to match user code against the known-valid types.
+	\item Extend the syntax (cf.~\ref{rust-plugins}) to admit a new form of function representing a request; then plug in to the compiler before type-checking (or add a pass to the existing checker) to unify types against the schema, used as an additional context set on the left of the derivation (cf.~\ref{lambda-calculus}).
+\end{enumerate}\label{discussion-models-validation}
+
+Validation that relies on knowledge of prior requests (cf.~\ref{sessions}) will certainly be easier to implement - if not possible only - under the first model with a compiler plugin (cf.~\ref{rust-plugins}) that is able to walk the control-flow graph, (CFG) and inspect the path between requests and their respective dependants.
+
+Considering the state of HTTP in Rust, (cf.~\ref{rust-http}) the second model would however afford a welcome usability of response body, as the returned type could capture the structure of the data in the server's response. This would be of particular use if a developer used the returned data in a further request: under the first model we would only have type information for the structure if they had chosen to de-serialise and re-serialise the data, which may even have been deliberately avoided  for reasons of performance. Providing the developer with this type would ensure it exists when used as an input to the second request, and could be achieved without overhead since the structure is known from the schema.
+
+A further complication of conducting the entire analysis at the MIR stage is due to there being no single or standard implementation of an HTTP client for Rust. (cf.~\ref{rust-http}) We would therefore need either to look for specific third-party function identifiers, each subject to change and none other supported, or attempt to match on the system calls to which each library must inevitably reduce.
+
+The third model may offer nothing over the first, other than additional complexity, depending on the suitability of the format and content of the data contained in the MIR CFG. There may, for example, be some ambiguity in requests at the MIR stage due to what is lost in the reduction from pure Rust, and subsequently from HIR.
+
+Thus, sessions of multiple requests will be validated with a compiler plugin at the MIR stage, and the characteristics of each request, singly, will be checked in a manner to be determined after having evaluated the suitability of the MIR CFG for identifying requests (cf.~\ref{task-eval-mir-cfg}).\label{proposal-validation}
+
+\subsection{Project milestones}\label{tasks}
+
+\subsubsection{Sample schemata}\label{task-sample-schemata}
+A set of sample schemata will prove useful in guiding implementation to meet the aims in the specification, as well as in testing and evaluation.
+\begin{task}
+	\taskschedule{Wk1 February}
+	\taskrisks{None - useful to have early on, but will not block progress.}
+\end{task}
+
+The sample should consist of many succinct (but complete) OAS documents that each represent an objective of the specification, together with at least one larger example of more realistic usage that combines several of the usages outlined in the specification.
+
+\subsubsection{Evaluate MIR CFG}\label{task-eval-mir-cfg}
+Access must be gained to the Rust compiler's MIR control-flow graph, and output in a format convenient to evaluating its suitability for use in the project.
+\begin{task}
+	\taskschedule{Wk4 February}
+	\taskrisks{Time-sensitive - any delay blocks further progress; bad choice impacts rest of project.}
+\end{task}
+
+The MIR CFG (cf.~\ref{rust-mir}) will be used for determining correctness of multi-request sessions (cf.~\ref{sessions};~\ref{proposal-validation}) - but a decision must be made on whether to make that determination in Rust natively, or to export the relevant structure to another program.
+
+This evaluation should also cover feasibility of using MIR to analyse individual requests, or whether that should be done in the type-checker, or by \emph{constructing} types and traits for the developer to use (cf.~\ref{discussion-models-validation}).
+
+\subsubsection{Create test suite}\label{task-create-test-suite}
+An automated test suite should be created in order to aid tracking implementation, avoid regression, and eventually be used as part of the project's evaluation.
+\begin{task}
+	\taskschedule{Wk2 March}
+	\taskrisks{Needed, at least in part, early on to avoid surprises later.}	
+\end{task}
+
+The suite will need to (attempt to) compile sample programs; a successful test is one that either:
+\begin{enumerate}[(a)]
+	\item Contains a sample program exhibiting correct API use, \emph{and} compilation succeeds;
+	\item Contains a sample program that attempts to use an API in a manner not permitted by the schema, \emph{and} compilation fails.
+\end{enumerate}
+
+In order to avoid unintentional `over-fitting', where appropriate tests should randomise certain components, and run multiple times.
+
+This should be an ongoing task - both in the sense of revisiting tests to track progress, and in adding test cases to cover more requirements. They may not all be tested by the scheduled date, but it is important to cover some, and have a basic framework in place.
+
+\subsubsection{Pointwise validation}
+Reasonably complete (with reference to the aims of~\ref{client-errors}, and to the tests created in~\ref{task-create-test-suite}) implementation of API request validation, modulo inter-dependencies.
+\begin{task}
+	\taskschedule{Wk2 April}
+	\taskrisks{Crux of the project, and entirely dependent on~\ref{task-eval-mir-cfg}.}
+\end{task}
+
+In the manner decided in~\ref{task-eval-mir-cfg}, analysis must be implemented on a per-request basis of the communication with APIs for which a schema is provided.
+
+At this stage, any dependencies such as authorisation requirements should be ignored - viz. a program that incorrectly uses API endpoints out of order, but where each request \emph{in itself} is valid, will be allowed to compile.
+
+\subsubsection{Dependency validation}
+Validation of the presence and ordering of dependent requests, as described by the schema.
+\begin{task}
+	\taskschedule{Wk1 June\footnotemark}
+	\taskrisks{Overrunning would encroach on time available to analyse and write-up results.}
+\end{task}\footnotetext{The prolonged gap between milestones takes cognisance of the exam period enclosed.}
+
+Validation of dependencies in multi-request sessions will occur in a compiler pass at the MIR stage (cf.~\ref{rust-plugins};~\ref{rust-mir}).
+
+As an implementation task, this milestone is dependent on a decision of whether to export the CFG for analysis in a separate program, or to implement it all in a native Rust plugin (cf.~\ref{task-eval-mir-cfg}).
+
+As part of the solution, this step is likely to be technically dependent on requests within the dependency graph being pointwise valid. Thus, this stage should occur after such validation, and only if it is successful.
+
+\subsubsection{Extension: Semi-formal reasoning}
+If there is a time-surplus, it may be informative to model the implementation more formally, in order to show (semi-formally) why it should work, or perhaps why a particular case can be ambiguous.
+\begin{task}
+	\taskschedule{Time-permitting}
+	\taskrisks{-}
+\end{task}
+
+In the event that time is available, this extension should also include a brief survey of the $\pi$-calculus and session typing - with an aim to including our validation of `multi-request sessions' in the model.
+
+Depending on the model for validation chosen (cf.~\ref{discussion-models-validation};~\ref{task-eval-mir-cfg}) this may be convenient, or bare little resemblance to the implementation.
+
+This may be particularly helpful if, for instance, a particular test with a randomised argument (cf.~\ref{task-create-test-suite}) \emph{sometimes} fails, due perhaps to a check that is not always unambiguously valid or invalid.

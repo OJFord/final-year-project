@@ -1,0 +1,64 @@
+To obviate uncertainty surrounding the correctness of a client device's consumption of an API, we would like a system that leverages the type system and compiled nature of a language used for embedded systems to provide certain compile-time validations.
+
+There are many ways in which HTTP (or CoAP\footnote{CoAP is a stripped-down sibling of HTTP's, designed specifically for constrained IoT devices and networks. \cite{rfc7252}}) interaction between a client and server can fail; indeed at all layers in the TCP/IP stack. It is the application layer that is of concern to this project, wherein failure modes are described by the \code{4xx} and \code{5xx} status code ranges, representing client and server errors respectively.
+
+\subsection{Client error codes}\label{client-errors}
+HTTP's client error status codes include `\code{405} Method Not Allowed' - indicating that the method used (\code{GET}, \code{POST}, et al.) is not an action available for the resource on which it was attempted - and `\code{400} Bad Request', typically indicative of a malformed request body, such as \mintinline{json}`{"id": 42}` when the field \mintinline{json}{"id"} is expected to contain a string. Server error codes mostly pertain to ephemeral issues - unavailability due to the machine rebooting, or the web server having collapsed under sudden demand, for example. It is the possibility of client errors, the \code{4xx} range, that we can aim to avoid.
+
+Thus, the system should aim to prevent the possibility, so far as possible, of errors ocurring due to bugs in the client device code. Table~\ref{preventable-errors} details the codes it is expected to be possible to prevent.
+
+\begin{table}[!h]
+\caption{\emph{Client errors anticipated to be compile-time avoidable}}
+\label{preventable-errors}
+\begin{adjustwidth}{-1in}{-1in}
+\begin{tabular}{lll}
+\toprule
+\multicolumn{1}{c}{\multirow{2}{*}{\textbf{Status Code}}} & \multicolumn{2}{c}{\textbf{Example}}
+\\\cmidrule(lr){2-3}
+& \multicolumn{1}{c}{\textbf{Use}} & \multicolumn{1}{c}{\textbf{Problem}}
+\\\midrule
+400 Bad Request & Request body has structure $A$ & Expected structure $B \neq A$
+\\\cmidrule(lr){1-3}
+401 Unauthorized & Unauthenticated request & Endpoint requires authentication
+\\\cmidrule(lr){1-3}
+404 Not Found & \code{GET /foo} & \code{/foo} does not exist
+\\\cmidrule(lr){1-3}
+405 Method Not Allowed & \code{PATCH /foo} & \code{/foo} does not support \code{PATCH}
+\\\cmidrule(lr){1-3}
+406 Not Acceptable & \code{Accept: application/json} & Endpoint does not provide JSON
+\\\cmidrule(lr){1-3}
+407 Proxy Auth. Required & Unauthenticated proxied request & Endpoint requires authentication
+\\\cmidrule(lr){1-3}
+411 Length Required & No \code{Content-Length} header & Endpoint requires the header
+\\\cmidrule(lr){1-3}
+412 Precondition Failed & \code{PATCH /foo \{"state": 3\}} & Endpoint cannot transition  $1 \to 3$
+\\\cmidrule(lr){1-3}
+415 Unsupported Media Type & \code{POST /foo \{\}} & Endpoint does not accept JSON
+\\\cmidrule(lr){1-3}
+417 Expectation Failed & \code{Expect: 100-continue} & Endpoint cannot respond \code{100}
+\\\cmidrule(lr){1-3}
+421 Misdirected Request & Connection to $A$ reused against $B$ & $B$ has greater security requirements
+\\\cmidrule(lr){1-3}
+424 Failed Dependency & \code{POST /dependant \{"ref": "foo"\}} & Dependency must be created first
+\\\cmidrule(lr){1-3}
+426 Upgrade Required & \code{HTTP/1.0 ...} & Endpoint requires \code{HTTP/1.1} 
+\\\cmidrule(lr){1-3}
+428 Precondition Required & \code{PUT ...} & Must \code{If-Match} on a priori state
+\\\bottomrule
+\end{tabular}
+\end{adjustwidth}
+\end{table}
+
+Table~\ref{preventable-errors} forms a proper subset of possible client errors, since some such as \code{410 Gone} (which indicates a resource did exist, but no longer does), \code{403 Forbidden} (user has correctly authenticated, but is not authorised for this action), and \code{409 Conflict} (modification to the resource is in conflict with its a priori state) are caused by some aspect variable in the lifetime of the application.
+
+Further, codes such as \code{409} and \code{410} could be due to the API interaction of other actors, if multiple devices have access to the same resource, in which case there is no hope to prevent the error entirely.
+
+Others may be possible to prevent partially - such as the \code{422 Un\-proc\-ess\-able Entity} which typically signals a validation error within a (structurally sound, so \code{400} is inappropriate) request body, and those pertaining to data in the request being too long.
+
+\subsubsection{Sessions}\label{sessions}
+Some of those listed in table~\ref{preventable-errors} will require some knowledge of a `session' of multiple requests: validating that an authentication request has occurred prior to one that requires it, for example.
+
+\subsection{`Soft' requirements}\label{soft-reqs}
+The system preventing these errors should be such that a descriptive message is presented to the developer, from which the problem - and hopefully its solution - is clear; the intention is to provide an aid, not a hindrance.
+
+Similarly, the system should be of benefit to the development of the client device without impacting or requiring changes on any server with which it communicates.

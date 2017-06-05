@@ -1,0 +1,8 @@
+_minted-main/*
+main.*
+!main.tex
+*.aux
+*.pdf
+*.fls
+*.dvi
+*.fdb_latexmk
