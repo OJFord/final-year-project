@@ -1,0 +1,26 @@
+\par\vfill\break
+\advance\vsize by 1in
+\advance\voffset by -1in
+
+{\raggedright 28 June 2017 \\ CAS5}
+\vskip 1.2in
+
+\makeatletter
+
+{\centering
+\@author \\[15pt] \textbf{\large\@title} \\[15pt] \supervisor
+\par}
+\vskip 0.75in
+
+\begin{abstract}
+
+This project investigates the extent to which errors in the use of web APIs can be detected, and subsequently prevented, through static analysis. The emphasis is on an implementation of a library \cite{tapioca} for the Rust programming language to facilitate such detection and halt compilation. Rust's type system is leveraged together with its pattern matching paradigm to provide a statically typed interface to a REST API, inferred from a given schema; according to the OAI specification. We further investigate an AST pass to analyse stateful interactions with an API that span multiple requests. Finally, alternative solutions to the general problem of interface misuse are examined, and used as a benchmark against which to evaluate our solution.
+
+\end{abstract}
+\makeatother
+
+\thispagestyle{empty}
+
+\par\vfill\break
+\advance\vsize by -1in
+\advance\voffset by 1in
