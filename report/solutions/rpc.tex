@@ -1,0 +1,54 @@
+\subsection{Remote Procedure Calls} \label{soln:rpc}
+RPC is a generic term for protocols implementing remote invocation of procedures from a separate process. The server (that machine which hosts the procedure) and client (which does the invoking) are often separated by a network, but RPC is also used inter-process on a single machine to structure communication over Unix sockets~\cite{rpc_unix_sockets}.
+
+RPC differs from REST (or `standard' HTTP\footnote{RPC still needs a transport mechanism, and can and has been used over HTTP such as in xml-rpc~\cite{xml-rpc} and SOAP~\cite{ietf-soap-draft}.}) not just in being a different protocol (strictly speaking, a set of protocols in the case of RPC) but so too in the manner in which the server-side code is executed. Whereas HTTP is a request for a resource, stemming from its origins in more FTP-like document-sharing~\cite{http_history, http_vs_ftp}, RPC is a much tighter coupling - more akin to calling a library function, only the library happens to be dynamically linked over IP.
+
+Client-server interactions in which both entities are controlled (or maintained) by a single party are well-suited to RPC, but this is often not the case in an IoT context, where it is common for a client device manufacturer to be using another vendor's back-end server.
+
+Remote Procedure Calls could certainly be made over HTTP, CoAP, or even a queuing transport such as MQTT~\cite{mqtt-rpc} - but this is typically not the case; more often we see REST-ful HTTP or CoAP APIs, and domain-specific data structures passed through message queues, giving a more loosely-coupled interaction than RPC affords.
+
+\subsubsection{Protocol buffers} \label{soln:rpc:protocol-buffers}
+
+Protocol buffers, such as \emph{Google}'s protobuf~\cite{protobuf} and \emph{Cap'n Proto}~\cite{capn_proto} provide the serialisation of data structures used by RPC frameworks.
+
+This requires the client and server to share (or each be compiled against) a common protocol definition file. \Cref{code:rpc:capnp-def} shows an excerpt of such a specification for the \emph{Cap'n Proto} scheme.
+
+\begin{codelisting}{code:rpc:capnp-def}{Example \emph{Cap'n Proto} RPC interface definition~\cite{capnp_example}}
+\begin{minted}[tabsize=4]{capnp}
+interface Calculator {
+    evaluate @0 (expression :Expression) -> (value :Value);
+    # ...
+    # abridged
+    # ...
+    interface Value {
+        read @0 () -> (value :Float64);
+    }
+    defFunction @1 (paramCount :Int32, body :Expression)
+                -> (func :Function);
+    interface Function {
+        call @0 (params :List(Float64)) -> (value :Float64);
+    }
+    getOperator @2 (op :Operator) -> (func :Function);
+    enum Operator {
+        add @0;
+        subtract @1;
+        multiply @2;
+        divide @3;
+        }
+    }
+\end{minted}
+\end{codelisting}
+
+A definition such as in \cref{code:rpc:capnp-def} does not detail how it used, it acts merely like a `header' file in C-like languages: a list of interfaces, and the contract \cfref{bg:dbc} for using them.
+
+\subsubsection{gRPC} \label{soln:rpc:grpc}
+
+gRPC is an RPC protocol developed at \emph{Google} which uses a protocol definition file similar to the \emph{Cap'n Proto} example in \cref{code:rpc:capnp-def}. Programs are available in a number of languages to generate stubs for which the user can then provide an implementation. \cite{grpc}
+
+This provides a tight coupling between the server and client software without requiring that they are written in the same programming language.
+
+With \emph{gRPC}, a large team of developers working separately on the server and client-side software can have their programs interact properly with just the relatively simple protocol definition files acting as a single source of truth for the correct use of the API. If, when the stubs are regenerated following an update to these files, the client program no longer functions, the developers maintaining it are immediately aware of an issue.
+
+Despite being a clear benefit to a large team within a single organisation, and having significant real-world use in that context, there seem very few if any public APIs offering \emph{gRPC} servers.~cite{grpc} \emph{Square}, for example, is touted as a prominent user of \emph{gRPC}, but it's public API remains REST+JSON.~\cite{square_api}
+
+This is likely a chicken-and-egg problem: users of the API are more familiar with REST+JSON, which likely makes it the more productive \cfref{intro:req:productivity} choice given the option. Then, if most users won't use a \emph{gRPC} API there's no business case for it to be offered; so the users remain more familiar with REST+JSON. This hasn't stopped some authors lauding it as `the future of web app development'.~\cite{grpc_web}

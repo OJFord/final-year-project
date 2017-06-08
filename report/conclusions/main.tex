@@ -1,0 +1,14 @@
+\section{Conclusions} \label{concl}
+
+\input{conclusions/evaluation}
+\input{conclusions/comparison}
+
+\subsection{Further work} \label{concl:further}
+
+!TODO: do further work and then discuss what's been cut for time...
+
+As mentioned in the evaluation of \emph{tapioca} as an aid to developer productivity, \cfref{concl:eval:productivity} the benefits of using the library quickly erode when it starts to go wrong. Further work could provide the user with straightforward means to correct an invalid schema, or to stop \emph{tapioca} from failing compilation in case of it being due to a bug in the library, rather than user code.
+
+The project could also be extended to the server-side software implementing the API for a schema, generating stubs with a signature to match the schema. Conversely, it could generate the schema from the type signatures of an existing server-side implementation.
+
+If a device were to be deployed with software compiled against a schema coupled to the server software, (whichever came first) it would have an even stronger claim to the safety of its interaction with that server's web API.

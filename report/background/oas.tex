@@ -1,0 +1,74 @@
+\subsection{Open API Specification} \label{bg:OAS}
+
+The Open API Specification (OAS) is a work-in-progress evolution of the proprietary \emph{Swagger} specifications; volunteered by the company to form the \emph{Open API Initiative} (OAI) which aims to provide `a vendor neutral API description format'. \cite{about_oai}
+
+The specification consists of multiple `objects' describing security, available paths, possible responses, the structure of requests, etc. - it is the `schema object' for the structure of request bodies that will be of most interest.
+
+\begin{codelisting}{code:OAS:schema-obj}{Example of an OAS Schema Object}
+\begin{minted}[tabsize=2]{yaml}
+type: object
+required:
+- name
+properties:
+  name:
+    type: string
+  address:
+    $ref: '#/definitions/Address'
+  age:
+    type: integer
+    format: int32
+    minimum: 0
+\end{minted}
+\end{codelisting}
+
+For example, \cref{code:OAS:schema-obj} gives an OAS schema object that describes an object with at least a \code{name} field, and optionally an \code{address} and \code{age}. It also specifies that \code{name} is of type \code{string}, \code{age} is an unsigned $32$-bit integer, and the type of \code{address} is defined elsewhere in the document (in the `definitions object') to enable reuse.
+
+\begin{codelisting}{code:OAS:path-obj}{Example of an OAS Path Object}
+\begin{minted}[tabsize=2]{yaml}
+/addresses:
+  summary: Address book endpoint
+  get:
+    description: List addresses in user's address book
+    responses:
+      200:
+        description: List of addresses
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/Address' 
+  post:
+    description: Add a new address
+    requestBody:
+      $ref: '#/definitions/Address'
+    responses:
+      405:
+        description: Not implemented
+/addresses/{address-id}:
+  summary: Individual address
+  get:
+    description: Fetch a single address
+    parameters:
+    - name: address-id
+      in: path
+      description: ID of address
+      required: true
+      type: string
+    responses:
+      200:
+        description: Address
+        content:
+          application/json:
+            schema:
+              $ref: '#/definitions/Address'
+\end{minted}
+\end{codelisting}
+
+A path object, such as the two top-level entities in \cref{code:OAS:path-obj}, specifies the URI at which a particular endpoint is available, along with the HTTP methods that it accepts. For each endpoint, it then gives a description of the structure of expected requests, and that of the server's response.
+
+An equivalent JSON document format is also offered, better demonstrating that the `schema object' in the OAS implements a subset of JSON Schema~\cite{oas_v3} - the JSON document structural validation language~\cite{json_schema} - and that the document itself is describable as a JSON Schema~\cite{oas_json_schema}.
+
+JSON Schema also defines an extension - `Hyper-Schema' - that is similar in nature to the OAS, though strictly JSON, with different syntax, and restricted in scope. \cite{leach_elegant_apis_2014}
+
+A third alternative, \emph{RAML}, is similar in feature set to the OAS but with a syntax differing enough to break some JSON Schema compatibility~\cite{raml_v1}. OAS also has the benefit of greater community use (inherited from \emph{Swagger}), and the advantage that comes from an open source initiative aiming for industry standard, as opposed to semi-open proprietary standard.

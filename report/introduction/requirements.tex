@@ -1,17 +1,18 @@
-\subsection{Requirements}\label{intro:req}
+\subsection{Requirements} \label{intro:req}
 
-To obviate uncertainty surrounding the correctness of a client device's consumption of an API, we would like a system that leverages the type system and compiled nature of a language used for embedded systems to provide certain compile-time validations.
+To obviate uncertainty surrounding the correctness of a client device's consumption of an API, we would like a system that leverages the type system and compiled nature of a language used for embedded systems, in order to provide certain compile-time validations.
 
-There are many ways in which HTTP (or CoAP\footnote{CoAP is a stripped-down sibling of HTTP's, designed specifically for constrained IoT devices and networks. \cite{rfc7252}}) interaction between a client and server can fail; indeed at all layers in the TCP/IP stack. It is the application layer that is of concern to this project, wherein failure modes are described by the \code{4xx} and \code{5xx} status code ranges, representing client and server errors respectively.
+There are many ways in which HTTP (or CoAP\footnote{CoAP is a stripped-down sibling of HTTP's, designed specifically for constrained IoT devices and networks.~\cite{rfc7252}}) interaction between a client and server can fail; indeed at all layers in the TCP/IP stack. It is the application layer that is of concern here, wherein failure modes are described by the \code{4xx} and \code{5xx} status code ranges, representing client and server errors respectively.
 
-\subsubsection{Client error codes}\label{intro:req:client-errors}
-HTTP's client error status codes include `\code{405} Method Not Allowed' - indicating that the method used (\code{GET}, \code{POST}, et al.) is not an action available for the resource on which it was attempted - and `\code{400} Bad Request', typically indicative of a malformed request body, such as \mintinline{json}`{"id": 42}` when the field \mintinline{json}{"id"} is expected to contain a string. Server error codes mostly pertain to ephemeral issues - unavailability due to the machine rebooting, or the web server having collapsed under sudden demand, for example. It is the possibility of client errors, the \code{4xx} range, that we can aim to avoid.
+\subsubsection{Preventable client errors} \label{intro:req:preventable}
+HTTP's client error status codes include `\code{405} Method Not Allowed', indicating that the method used (\code{GET}, \code{POST}, et al.) is not an action available for the resource on which it was attempted, and `\code{400} Bad Request', which is typically indicative of a malformed request body - such as \mintinline{json}`{"id": 42}` when the field \mintinline{json}{"id"} is expected to contain a string. Server error codes mostly pertain to ephemeral issues - unavailability due to the machine rebooting, or the web server having collapsed under sudden demand, for example. It is the possibility of client errors, the \code{4xx} range, that we can aim to avoid.
 
-Thus, the system should aim to prevent the possibility, so far as possible, of errors occurring due to bugs in the client device code. Table~\ref{tbl:req:preventable-errors} details the codes it is expected to be possible to prevent.
+Thus, the system should aim to prevent the possibility, so far as possible, of errors occurring due to bugs in the client device code. Table~\cref{tbl:req:preventable-errors} details the codes it is expected to be possible to prevent.
 
 \begin{table}[!h]
 \caption{\emph{Client errors anticipated to be compile-time avoidable}}
 \label{tbl:req:preventable-errors}
+\centering
 \begin{adjustwidth}{-1in}{-1in}
 \begin{tabular}{lll}
 \toprule
@@ -51,16 +52,27 @@ Thus, the system should aim to prevent the possibility, so far as possible, of e
 \end{adjustwidth}
 \end{table}
 
-Table~\ref{tbl:req:preventable-errors} forms a proper subset of possible client errors, since some such as \code{410 Gone} (which indicates a resource did exist, but no longer does), \code{403 Forbidden} (user has correctly authenticated, but is not authorised for this action), and \code{409 Conflict} (modification to the resource is in conflict with its a priori state) are caused by some aspect variable in the lifetime of the application.
+\Cref{tbl:req:preventable-errors} forms a proper subset of possible client errors, since some such as \code{410 Gone} (which indicates a resource did exist, but no longer does), \code{403 Forbidden} (user has correctly authenticated, but is not authorised for this action), and \code{409 Conflict} (modification to the resource is in conflict with its a priori state) are caused by some aspect variable in the lifetime of the application.
 
 Further, codes such as \code{409} and \code{410} could be due to the API interaction of other actors, if multiple devices have access to the same resource, in which case there is no hope to prevent the error entirely.
 
 Others may be possible to prevent partially - such as the \code{422 Un\-proc\-ess\-able Entity} which typically signals a validation error within a (structurally sound, so \code{400} is inappropriate) request body, and those pertaining to data in the request being too long.
 
-\subsubsection{Sessions}\label{intro:req:sessions}
-Some of those listed in table~\ref{tbl:req:preventable-errors} will require some knowledge of a `session' of multiple requests: validating that an authentication request has occurred prior to one that requires it, for example.
+\subsubsection{Sessions} \label{intro:req:sessions}
+Preventing some of the HTTP status codes listed in \cref{tbl:req:preventable-errors} will require knowledge of a `session' of multiple requests: validating that an authentication request has occurred prior to one that requires it, for example.
 
-\subsubsection{`Soft' requirements}\label{intro:req:soft}
-The system preventing these errors should be such that a descriptive message is presented to the developer, from which the problem - and hopefully its solution - is clear; the intention is to provide an aid, not a hindrance.
+Thus, for maximum benefit, a solution will be required to analyse the stateful interaction of a series of requests, in addition to its analysis of each request in itself.
 
-Similarly, the system should be of benefit to the development of the client device without impacting or requiring changes on any server with which it communicates.
+\subsubsection{Unpreventable client \& server errors} \label{intro:req:unpreventable}
+Although we cannot hope - through any amount of analysis of client software - to stop server errors from occurring, it would be desirable to make the programmer aware of the possibility; to force him, via the compiler, to handle the error cases in a deliberate manner.
+
+\subsubsection{Productivity} \label{intro:req:productivity}
+A `softer', but no less important requirement is that the implementation allows the user (that is, the programmer of the client device software) to be productive. An implementation that burdens the user with additional work without perceivable gain would not be used; even if another party, perhaps the end-user of the device, would see the benefit.
+
+Throughout the industry, burdensome technical advantage is traded off again\-st ease of development; the latter almost always wins. The result is that formally verified programs are mostly confined to research, and even compiled languages seem increasingly to be used only where necessary, with efforts to bring higher-level languages such as JavaScript to desktop platforms,~\cite{electron} and even to embedded devices.~\cite{jerryscript} Statically typed languages represent a cross-section that seems somewhat resistant to this trend, with projects such as the popular TypeScript~\cite{typescript} that transpiles to JS offering the boost to productivity that comes with the earlier warning of a large category of errors.
+
+\begin{quote}
+[Researchers in the 1980s] predicted that the programming world would embrace with gratitude every assistance promised by formalisation to solve the problems of reliability ... It has turned out that the world just does not suffer significantly from the kind of problem that our research was originally intended to solve.
+\end{quote}\rightline{\rm --- Professor Sir Tony Hoare}
+
+Thus, the implementation discussed here should be an aid, not a hindrance, to the user. It should make handling failure modes discussed in \cref{intro:req:unpreventable} straightforward, be transparent about why certain options are unavailable, and, in accordance with \cref{intro:motivation}, be of benefit to the development of the client device without impacting or requiring changes on any server with which it communicates.

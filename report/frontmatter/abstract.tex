@@ -6,18 +6,17 @@
 \vskip 1.2in
 
 \makeatletter
-
 {\centering
 \@author \\[15pt] \textbf{\large\@title} \\[15pt] \supervisor
 \par}
+\makeatother
 \vskip 0.75in
 
 \begin{abstract}
 
-This project investigates the extent to which errors in the use of web APIs can be detected, and subsequently prevented, through static analysis. The emphasis is on an implementation of a library \cite{tapioca} for the Rust programming language to facilitate such detection and halt compilation. Rust's type system is leveraged together with its pattern matching paradigm to provide a statically typed interface to a REST API, inferred from a given schema; according to the OAI specification. We further investigate an AST pass to analyse stateful interactions with an API that span multiple requests. Finally, alternative solutions to the general problem of interface misuse are examined, and used as a benchmark against which to evaluate our solution.
+This project investigates the extent to which errors in the programmatic use of web APIs can be detected, and subsequently prevented, through static analysis. The emphasis is on an implementation of a library~\cite{tapioca} for the Rust programming language to facilitate such detection, and to halt compilation. Rust's type system is leveraged together with its pattern matching paradigm to provide a statically typed interface to a REST API, of which the correct use is inferred from a given schema; in accordance with the OAI specification. We further investigate an IR pass to analyse stateful interactions with the API spanning multiple requests. Finally, alternative solutions to the general problem of interface misuse are examined, and used as a benchmark against which to evaluate that presented here.
 
 \end{abstract}
-\makeatother
 
 \thispagestyle{empty}
 

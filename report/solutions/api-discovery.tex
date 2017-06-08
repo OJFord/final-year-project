@@ -1,0 +1,12 @@
+\subsection{API discovery} \label{soln:api-discovery}
+
+API discovery, that is, services or tools facilitating the discovery of the specific details of an API (in contrast to service discovery, which is more of a micro-DNS) can generally be categorised as one of two types:
+
+\begin{enumerate}
+\item Those that provide a registry of user-provided information, intended largely for human consumption, and motivated by driving users to the API;
+\item Those that \emph{generate} a schema for the API based on its source language, or a secondary configuration.
+\end{enumerate}
+
+As we are interested in automating as many validations as possible, exactly to lessen the need for human intervention, only the second type is of interest to this project.
+
+\emph{Swagger}~\cite{swagger} is a popular example; defining a specification for a YAML~\cite{yaml} API schema, with community traction in implementing inference engines for many languages and API framework DSLs.~\cite{swagger_oss} Its focus is primarily on the server-side, using the schema to generate correct documentation. \cfref{bg:OAS}

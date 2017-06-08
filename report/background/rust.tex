@@ -1,0 +1,197 @@
+\subsection{Rust} \label{bg:rust}
+
+\subsubsection{Language} \label{bg:rust:lang}
+The \emph{rust} programming language is designed for `[memory] safety, speed, and concurrency', achieved through `many zero-cost abstractions'. These include `ownership', which ensures exactly one binding for a resource; scoped `borrowing' (from the `owner') of references, where at any one time there are either immutable references borrowed, or a single mutable reference - making data races impossible - and `lifetimes' which ensure a borrowed reference is not used after having been freed. \cite{rust_book}
+
+The language is statically typed, offers algebraic data types \cfref{bg:types:algebraic} and their de-structuring via pattern matching; \cite{rust_match_mut_move} static dispatch with `trait bounds' to limit genericity of functions (`monomorphised' at compile-time)~\cite{rust_book} and dynamic dispatch via `trait objects', analogous to type classes in other languages, such as Haskell~\cite{rust_functional}. \cite{rust_type_system}
+
+\begin{codelisting}{code:rust:trait-bounds}{An example trait bounding in Rust. \mintinline{rust}{introduce_dog} will be `monomorphised': instantiated for the concrete type \mintinline{rust}{IrishTerrier} to enable static dispatch.}
+\begin{minted}[tabsize=4]{rust}
+    trait IsDog {
+        fn breed(&self) ->& str;
+        fn name(&self) -> &str;
+    }
+    
+    struct IrishTerrier {
+        name: String;
+    }
+    
+    impl IrishTerrier {
+        const breed: &'static str = "Irish Terrier";
+    }
+    
+    impl IsDog for IrishTerrier {
+        fn breed(&self) -> &str {
+        	self.breed
+        }
+        
+        fn name(&self) -> &str {
+        	self.name
+        }
+    }
+    
+    fn introduce_dog<T: IsDog>(dog: T) {
+        println!("This is {}, an {}", dog.name(), dog.breed());
+    }
+\end{minted}
+\end{codelisting}
+
+Rust does not have a garbage collector, making it possible to use in an embedded context, with several MIPS and ARM targets supported.~\cite{rust_platforms} \emph{zinc},~\cite{rust_rtos_zinc} for example, is a `bare-metal' RTOS for ARM that is implemented without any C code\footnote{Many projects cross-compiling \emph{rust} for, say, ARM Linux will use Rust's FFI to call device drivers in C~\cite{rust_baremetal}} and aiming for as little assembly as possible.
+
+\subsubsection{HTTP} \label{bg:rust:http}
+Like other systems programming languages, Rust's standard library does not include an HTTP client.
+
+\emph{hyper} is a third-party HTTP library for Rust, which offers `a low-level type-safe abstraction over raw HTTP, providing an elegant layer over ``stringly-typed'' HTTP'. The client provides typed access to the response status code, headers, and implements the \code{Read} trait for access to the response body. \cite{rust_http_hyper}
+
+Other HTTP client implementations include the less popular \emph{solicit}~\cite{rust_http_solicit} which implements \code{HTTP/2}, and \emph{Teepee} - on which development has `stalled'~\cite{rust_http_teepee}.
+
+\subsubsection{Types} \label{bg:rust:types}
+
+!TODO: focus on practical use in Rust, with close reference to more theoretical treatment in \cref{bg:types:algebraic}
+
+\subsubsection{Declarative macros} \label{bg:rust:decl-macros}
+Macros in \emph{rust} can be either declarative, as in \cref{code:rust:decl-macro}, or procedural. The declarative variety (`macros by example'~\cite{macro_by_example}) match a pattern in their input, and emit the code in the corresponding block~\cite{rust_macros_overview}.
+
+\begin{codelisting}{code:rust:decl-macro}{An example of a declarative macro in Rust}
+\begin{minted}[tabsize=4]{rust}
+	// print many lines by: printlns!["Line 1", "Line 2"]
+	macro printlns {
+		($($x:expr),*) => { $(println!($x);)* },
+	}
+\end{minted}	
+\end{codelisting}
+
+For example, in \cref{code:rust:decl-macro} we've defined a new macro called `\mintinline{rust}{printlns!}' that is called with arbitrarily many comma-separated \emph{rust} expressions, that are then printed - separated by newlines - to the standard output with the (built-in) macro \mintinline{rust}{println!}. \cite{rust_rfc1584}
+
+This style of macro is `declarative' in the sense that we declare, for each arm of acceptable input token patterns, the code which should be expanded to replace the macro's invocation.
+
+\subsubsection{Procedural macros} \label{bg:rust:proc-macros}
+
+Though it shares some similarity to pattern-matching via \mintinline{rust}{match} blocks, the declarative macro shown in \cref{code:rust:decl-macro} is quite unlike other \emph{rust} code. Procedural macros allow us to write more familiar \emph{rust} functions, that still operate on tokenised input, and return (possibly transformed) tokens in-place.
+
+\begin{codelisting}{code:rust:proc-macro}{An example of a procedural macro in Rust}
+\begin{minted}[tabsize=4]{rust}
+	// watch rustc parse the program by, instead of:
+	//     let foo = bar;
+	// using:
+	//     let foo = verbose_parse!(bar);
+	#[proc_macro]
+	pub fn verbose_parse(tokens: TokenStream) -> TokenStream {
+	    println!("{}", tokens);
+	    tokens
+	}
+\end{minted}	
+\end{codelisting}
+
+Procedural macros can also be invoked as AST node annotations, much like that in their own definition, by using \mintinline{rust}{#[proc_macro_attribute]}. In this case, the procedure receives two arguments, an \mintinline{rust}{Option<TokenStream>} consisting of the arguments to its invocation, and the tokens corresponding to the AST node on which it was annotated. \cite{rust_rfc1566}
+
+A popular form of attribute-like procedural macros, known as `custom derive', has its own syntactic sugar. Procedures defined with the annotation \mintinline{rust}{#[proc_macro_derive(Name)]} can then be invoked by a \mintinline{rust}{#[derive(Name)]} annotation on any \mintinline{rust}{struct} or \mintinline{rust}{enum} type; the intention is that the procedural macro then \emph{derives} a particular trait (\mintinline{rust}{Name}) for that type.
+
+Common built-in examples of \mintinline{rust}{derive} in action include \mintinline{rust}{Clone} and \mintinline{rust}{Debug}: in each case, as long as every field or variant of the struct or enum implements \mintinline{rust}{Clone}, (resp. \mintinline{rust}{Debug}) the derivation for the larger type is formulaic, and can be achieved via the macro procedure.
+
+!TODO: ref this back to derivation discussion in \cref{bg:types} once \cref{bg:types:algebraic} done
+
+\subsubsection{Syntax extensions \& compiler plugins} \label{bg:rust:plugins}
+
+Syntax extensions are in some sense a subset of procedural macros;~ \cite{rust_macros_whereweat} though `macros' and `procedural', they are also in some sense a precursor to Rust's procedural macros, and very definitely a type of compiler plugin - though not all plugins are syntax extensions.~\cite{rust_macros_overview} For this reason, compiler plugins (including syntax extensions) warrant a discussion separate to procedural macros here.
+
+As with other procedural macros \cfref{bg:rust:proc-macros}, syntax extensions receive and return \mintinline{rust}{TokenStream}s. A popular example~\cite{rust_macros_overview, rust_book} is providing Roman numerals as an integer representation: \mint{rust}{
+    let five: u8 = 26 - roman!(XI);
+}
+
+A `normal' function could only offer this functionality if the argument \mintinline{rust}{XI} were given instead as a string, \mintinline{rust}{"XI"}; here \mintinline{rust}{XI} has become part of the syntax, it's a token representing a numeral of no lower standing than it's built-in counterpart \mintinline{rust}{11}.
+
+Syntax extensions differ from other procedural macros in implementation: 
+\begin{codelisting}{code:rust:syntax-ext}{An example of a syntax extension in Rust}
+\begin{minted}[tabsize=4]{rust}
+    fn roman_to_native(
+        ctxt: &mut ExtCtxt, span: Span, args: &[TokenTree]
+    ) -> Box<MacResult + 'static> {
+        // implementation omitted
+    }
+
+    #[plugin_registrar]
+    pub fn plugin_registrar(reg: &mut Registry) {
+        reg.register_macro("roman", roman_to_native);
+    }
+\end{minted}
+\end{codelisting} a separate function registers the macro procedure with the compiler, and thus while the macro has access to greater context, and the ability to float errors and warnings, it is considered unstable. The \mintinline{rust}{#[proc_macro*]} variants are essentially efforts to stabilise the common use-cases for syntax-extending compiler plugins. \cite{rust_macros_overview, rust_book}
+
+Compiler plugins more generally refer to AST visitors implementing the appropriate traits for the compiler interface to which they attach. Interfaces are available for each compiler stage, from early-stage lint passes down to naming an LLVM pass, which is registered from a C++ shared object. \Cref{tbl:rust:plugins} details the available interfaces, and the structures \cfref{bg:rust:ir} on which they operate. \cite{rust_macro_registry, rust_tests_llvm_pass}
+
+\begin{savenotes}
+\begin{table}[!h]
+\caption{\emph{rustc plugin interfaces and their data structures}}
+\label{tbl:rust:plugins}
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Interface} & \textbf{Structure}
+\\\midrule
+\mintinline{rust}{EarlyLintPass} visitor & Abstract Syntax Tree (AST)
+\\\cmidrule(lr){1-2}
+\mintinline{rust}{LateLintPass} visitor & High-level Intermediate Representation (HIR)
+\\\cmidrule(lr){1-2}
+N/A\footnote{Though this project's interim report described a \mintinline{rust}{MirPass} visitor, this interface has since been removed from the compiler.~\cite{rust_pr40239}} & Mid-level Intermediate Representation (MIR)
+\\\cmidrule(lr){1-2}
+\mintinline{rust}{&str} name of C++ .so & LLVM IR
+\\\bottomrule
+\end{tabular}
+\end{table}
+\end{savenotes}
+
+\subsubsection{Intermediate Representations} \label{bg:rust:ir}
+
+The \emph{rust} compiler progresses through a number of abstract representations prior to producing a final, runnable binary. \Cref{fig:rust:compiler-stages} shows the progress through these stages, along with the function each allows it to perform. \cite{rust_intro_mir}
+
+\begin{figure}[!h]
+    \centering
+    \tikzstyle{stage}=[draw, minimum size=2em]
+    \tikzstyle{check} = [pin edge={to-,thin,black}]
+    \begin{tikzpicture}[node distance=2.5cm,auto,>=latex']
+        \centering
+        \node [stage] (b) {AST};
+        \node (a) [left of=b,node distance=2cm, coordinate] {b};
+        \node [stage, pin={[check]above:{
+            type-check
+        }}] (c) [right of=b] {HIR};
+        \node [stage, pin={[check]above:\parbox{2.5cm}{\centering
+            borrow-check; optimisations
+        }}] (d) [right of=c] {MIR};
+        \node [stage, pin={[check]above:{
+            optimisations
+        }}] (e) [right of=d] {LLVM IR};
+        \node [coordinate] (end) [right of=e, node distance=2cm]{};
+        \path[->] (a) edge node {} (b);
+        \path[->] (b) edge node {} (c);
+        \draw[->] (c) edge node {} (d);
+        \draw[->] (d) edge node {} (e);
+        \draw[->] (e) edge node {} (end);
+    \end{tikzpicture}
+    \caption{Stages of the \emph{rust} compiler}
+    \label{fig:rust:compiler-stages}
+\end{figure}
+
+The AST and HIR are broadly similar trees of lexed tokens, though the separation of the structures allows the AST to remain close to the programmer's source code, (advantageous for early lints and error reporting) while the HIR maintains a more abstract view with the language's syntactic sugar removed.
+
+For example, \emph{rust} allows eliding lifetimes in cases matching some common patterns; these are made explicit during the lowering of the AST to HIR, in order for the subsequent type and borrow checking to have the information available without requiring knowledge of the elision rules. \cite{rust_rfc1191}
+
+The lowering of HIR to MIR is more involved. For each function, a MIR definition consists of a sequence of declarations for the storage that will be required on the stack, both by user code and any introduced temporary bindings, and the basic block at the head of control-flow graph (CFG).
+
+Each basic block consists of an identifier, sequence of statements, and a terminator, as described in \cref{code:rust:bb-grammar}.~\cite{rust_rfc1211} An explicit CFG is then constructed from the basic block data; which can then be traversed in pre- or post-orders.
+
+\begin{codelisting}{code:rust:bb-grammar}{BNF grammar of MIR basic blocks}
+\begin{minted}[tabsize=4]{bnf}
+    BASIC_BLOCK ::= BB_IDENT ':' STATEMENT TERMINATOR
+    BB_IDENT ::= 'bb' INTEGER
+    STATEMENT ::= LVALUE '=' RVALUE ';'
+        | STATEMENT STATEMENT
+        | 'drop' '(' DROP_KIND ',' LVALUE ')'
+    TERMINATOR ::= 'goto' ( BB_IDENT )
+        | 'if' '(' LVALUE ',' BB_IDENT ',' BB_IDENT ')'
+        // abridged for brevity
+        | 'return'
+\end{minted}
+\end{codelisting}
+
+The terminators, defining which branch should be followed `out' of each basic block, are still based on \emph{rust} primitives such as \mintinline{rust}{Some}, \mintinline{rust}{None}, and pattern matching - rather than the lower level Boolean branching of LLVM IR. \cite{rust_intro_mir}

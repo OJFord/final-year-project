@@ -1,0 +1,43 @@
+\subsection{Evaluating Tapioca} \label{concl:eval}
+
+In order to evaluate \emph{tapioca} as a solution to the problem of errors in API usage, we refer to the initial statement of requirements in \ref{intro:req}.
+
+\subsubsection{Preventing client errors} \label{concl:eval:prevent}
+
+From the acceptance tests, as described in \cref{impl:testing}, we can clearly define classes of error in API usage that \emph{tapioca} is able to prevent.
+
+These classes of potential errors are simply the \code{4xx} range of HTTP status codes as discussed in \cref{intro:req:preventable}. Since one of the measurements of success for an implementation was the client errors it is able to prevent, as part of the evaluation for \emph{tapioca} we briefly discuss each one here. 
+
+\paragraph{\code{400 Bad Request}:} !TODO
+
+\paragraph{\code{404 Not Found}:} Since \emph{tapioca} provides an interface only for the paths that exist, a \code{404} due to an incorrect path cannot occur through its use.
+
+The error is still possible if, for instance, the user supplies a constant resource identifier (or otherwise produces one which does not exist) and the server determines that the user would be authorised to access the resource if it did exist, and that it has not previously existed.
+
+\paragraph{... \\}
+
+With any of these failure modes, there is an argument to be made that the user can still avoid \emph{tapioca} - make an erroneous request through other means, and it will fail at run-time even if it is one \emph{tapioca} can detect at compile-time. This is trivially true: the programmer must `opt-in' to these checks, which is part of the reasoning for the requirement that an implementation be of benefit to development rather than a hindrance; something to `fight'.
+
+\subsubsection{Enforcing error handling} \label{concl:eval:err-handle}
+
+By returning Rust's (sum) \mintinline{rust}{Result<O, E>} type, where in \emph{tapioca}'s case each of the \mintinline{rust}{Ok} and \mintinline{rust}{Err} type parameters is an HTTP response; with a success or error code respectively, it is ensured that the programmer acknowledges that a request may not be successful.
+
+Better, since the body of each - viz. \mintinline{rust}{tapioca::ResponseOkBody} and \mintinline{rust}{ResponseErrBody} respectively - is an \mintinline{rust}{enum} type of possible responses, the programmer must use pattern matching to determine how to handle the response data in a type-safe manner according to the structure actually received.
+
+\subsubsection{Developer productivity} \label{concl:eval:productivity}
+
+However helpful \emph{tapioca} might be to a developer when it can provide a valid correction, productivity could quickly swing for the worse if it failed on a false positive in particular. Any errors in the provided schema would also be damaging to a user's productivity: their correct use of the API would have to wait for them to force the tooling to accept it.
+
+In order to evaluate whether \emph{tapioca} would be a help or hindrance to developers using web APIs, a short questionnaire was published in fora familiar to the target audience.
+
+!TODO: publish a short questionnaire and discuss results
+
+\subsubsection{Summary} \label{concl:eval:summary}
+
+The effectiveness of \emph{tapioca} depends on both the developer writing the client program, and on the API provider to also offer an accurate schema.
+
+It has to be believed that the developer is willing to opt-in: the demands are not great, and \emph{tapioca} allows the compiler to extend to HTTP requests the help that Rust developers already enjoy in other areas.
+
+The issue is in API providers adopting the OAS. Although it is an open standard; one backed by industry leaders, it is a change that requires a deliberate choice and ongoing maintenance if it is to be effective.
+
+Even if a team developing the software for an IoT client adopted \emph{tapioca}, and the APIs initially used provided an OAS schema, it takes only one request to erode any claim to type-safety surrounding requests. The benefit to using \emph{tapioca} then would lie purely in any perceived boost to productivity in maintaining the use of the APIs that did provide a schema.

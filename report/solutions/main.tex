@@ -1,37 +1,14 @@
-\section{Existing solutions}\label{soln}
-\subsection{Remote Procedure Calls}\label{soln:rpc}
-RPC is a generic term for protocols implementing remote invocation of procedures from a separate process. The server (that machine which hosts the procedure) and client (which does the invoking) are often separated by a network, but RPC is also used inter-process on a single machine to structure communication over Unix sockets \cite{rpc_unix_sockets}.
+\section{Existing solutions} \label{soln}
 
-RPC differs from REST (or `standard' HTTP\footnote{RPC still needs a transport mechanism, and can and has been used over HTTP such as in xml-rpc \cite{xml-rpc} and SOAP \cite{ietf-soap-draft}.}) not just in being a different protocol (strictly speaking, a set of protocols in the case of RPC) but so too in the manner in which the server-side code is executed. Whereas HTTP is a request for a resource, stemming from its origins in more FTP-like document-sharing \cite{http_history, http_vs_ftp}, RPC is a much tighter coupling - more akin to calling a library function, only the library happens to be dynamically linked over IP.
+\input{solutions/rpc}
+\input{solutions/service-discovery}
+\input{solutions/api-discovery}
 
-Client-server interactions in which both entities are controlled (or maintained) by a single party are well-suited to RPC, but this is often not the case in an IoT context, where it is common for a client device manufacturer to be using another vendor's back-end server.
-
-Remote Procedure Calls could certainly be made over HTTP, CoAP, or even a queuing transport such as MQTT \cite{mqtt-rpc} - but this is typically not the case; more often we see REST-ful HTTP or CoAP APIs, and domain-specific data structures passed through message queues, giving a more loosely-coupled interaction than RPC affords.
-
-\subsection{Service discovery}\label{soln:service-discovery}
-Service discovery mechanisms are a common pattern in Service-Oriented (or micro-service) Architectures (SOA) that allow dynamically managed (usually virtually hosted) services to `discover' one another like a plumber looking up an electrician in the \emph{Yellow Pages}. 
-
-These are useful for at least delivering a request to the correct place, but typically do not offer anything further by way of validation.
-
-Linkerd \cite{service_discovery_linkerd}, Consul \cite{service_discovery_consul}, and Apache Zookeeper \cite{service_discovery_apache} are examples of such mechanisms.
-
-\subsection{API discovery}\label{soln:api-discovery}
-API discovery, that is, services or tools facilitating the discovery of the specific details of an API (in contrast to service discovery, which is more of a micro-DNS) can generally be categorised as one of two types:
-
-\begin{enumerate}
-\item Those that provide a registry of user-provided information, intended largely for human consumption, and motivated by driving users to the API;
-\item Those that \emph{generate} a schema for the API based on its source language, or a secondary configuration.
-\end{enumerate}
-
-As we are interested in automating as many validations as possible, exactly to lessen the need for human intervention, only the second type is of interest to this project.
-
-Swagger \cite{swagger} is a popular example; defining a specification for a YAML \cite{yaml} configuration of an API, with community traction in implementing inference engines for many languages and API framework DSLs \cite{swagger_oss}. Its focus is primarily on the server-side, using the schema to generate syntactically-correct documentation. (cf.~\ref{bg:OAS})
-
-\subsection{Summary}\label{soln:summary}
-RPCs provide a tight-coupling that works excellently when the same user (possibly a team of software engineers) has autonomy over both client and server.
+\subsection{Summary} \label{soln:summary}
+RPCs provide a tight-coupling that works excellently when the same user, or company of users, has autonomy over both client and server.
 
 Swagger, by contrast, is essentially zero-coupling, but provides a mechanism for an API vendor to maintain synchrony between their documentation and code. Some client stub generators exist, to some extent `forcing' the user to use correct methods and paths. These seem only to exist for high-level languages, though, and without fully matching the request body to an ADT in the client source language. \cite{swagger_oss}
 
 Thus, there seems to be space for a solution that ties client and server more tightly than existing Swagger tooling, but maintaining the REST resource-access pattern distinct from RPC.
 
-This would allow the solution to meet the specified `soft' requirements (cf.~\ref{intro:req:soft}) of not disrupting existing work-flow, while allowing greater scope for detecting errors in client usage of an API, as compared to the referenced server's expectation.
+This would allow the solution to meet the specified `soft' requirements \cfref{intro:req:productivity} of not disrupting existing work-flow, while allowing greater scope for detecting errors in client usage of an API, as compared to the referenced server's expectation.

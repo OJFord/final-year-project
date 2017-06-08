@@ -1,0 +1,13 @@
+\subsection{Comparison to other solutions} \label{concl:comparison}
+
+We defined a successful solution to the problem of developing client-side software with reliably correct web API requests \cfref{intro:motivation} as one which prevents many errors in which the client is at fault, and requires the programmer to defensively handle the eventualities in which the server is at fault, or the possibility of the client being at fault could not be avoided. \cfref{intro:req}
+
+\emph{gRPC} meets these requirements well: client stubs serialise only the correct data types for sending over the wire, and offer only the truly available remote procedures. \cfref{soln:rpc:grpc}
+
+Our third requirement was developer productivity. \cfref{intro:req:productivity} Here \emph{gRPC} is less promising, just as a C programmer cannot be sold on Haskell before being convinced of the virtues of functional programming, users will not wish to interact with a \emph{gRPC} server rather than a set of REST endpoints without first appreciating the advantages RPC might bring them. Unfortunately, RPC carries a legacy of disdain~\cite{why_you_prefer_rest_rpc} coming from services with ad hoc definitions and naming schemes rather than a framework and protocol definition file such as with \emph{gRPC} or \emph{Cap'n Proto}.
+
+Further, \emph{gRPC} burdens the user with a separate program to run the code generation step, and the choice to either keep the generated stubs in version control, or for each developer on the team to generate them locally. There is also the need to obtain the protocol definition file, and perhaps periodically check for updates. \emph{tapioca} mitigates these issues by automatically obtaining the schema from a given URL, and running code generation in-place at compile-time.
+
+\emph{Swagger} fares better in this regard, providing users with interactive documentation that is generated from the API implementation, or vice versa. This affords the user developing a client application some assurance of correct API use, without disrupting work flow or enforcing a particular framework.
+
+The advantage in using \emph{tapioca} is that this process is moved from the browser, to the user's text editor or IDE of choice: verifying resource names is done by the compiler, and aided by auto-completion tools. Additionally, type-checking of request parameters and response bodies prevents surprises where using \emph{Swagger} or OAS alone could be vulnerable to the false assumption that a particular field is always present, or to ambiguities over the size or sign of an integer.

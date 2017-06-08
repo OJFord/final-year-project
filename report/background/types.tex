@@ -1,0 +1,139 @@
+\subsection{Type theory}\label{bg:types}
+
+\subsubsection{$\lambda$-calculus}\label{bg:types:lambda-calculus}
+The untyped lambda calculus was introduced by Church in 1936; the set of terms $\Lambda$ is ranged over by $M$ as: $$
+M \Coloneqq x \mid (\lambda{x}.M') \mid (M' \cdot M'')
+$$ where $x$ is a variable; with parentheses and application operator ($\cdot$) often omitted. \cite{tsfpl}
+
+\begin{defn}$\alpha$-conversion\label{def:types:alpha-conversion}
+	$$
+	\lambda{x}.M =_{\alpha} \lambda{y}.(M[y/x]) \ \ \ (y\notin{M})
+	$$
+\end{defn}
+
+That is, terms differing only in the names of bound variables are ($\alpha$-)equivalent.
+
+\begin{defn}Term substitution\label{def:types:term-substitution}
+	$$
+	\begin{aligned}
+		x[N/x] &= N \\
+		y[N/x] &= y &(y \neq x) \\
+		(\lambda{y}.M) &= \lambda{y}.(M[N/x]) \\
+		(PQ)[N/x] &= P[N/x]Q[N/x]
+	\end{aligned}
+	$$
+\end{defn}
+
+\begin{defn}$\beta$-reduction\label{def:types:beta-conversion}
+	$$
+	\begin{aligned}
+		(\lambda{x}.M)N &\to_{\beta} M[N/x] \\
+		M \to_{\beta} N &\Rightarrow \begin{cases}
+ 			\lambda{x}.M \to_{\beta} \lambda{x}.N \\
+ 			PM \to_{\beta} PN \\
+ 			MP \to_{\beta} NP
+ 		\end{cases}
+	\end{aligned}
+	$$
+\end{defn}
+
+$\beta$-conversion is a binary relation on $\langle{M,N}\rangle$, where $M$ is a \emph{reducible expression} (i.e. has the form $PQ$ where $P$ is an abstraction) and $N$ is its \emph{contractum}, the result of applying term substitution to $M$. The `many-step' relation $\twoheadrightarrow_{\beta}$ is its reflexive and transitive closure. \cite{tsfpl}
+
+\begin{defn}$\eta$-reduction\label{def:types:eta-reduction}
+	$$
+	\begin{aligned}
+	\lambda{x}.Mx &\to_{\eta} M &(x\notin{fv(M)})
+	\end{aligned}
+	$$
+\end{defn} where $fv(M)$ denotes the free variables of $M$.
+
+\paragraph{Extending $\Lambda$:}\label{bg:types:extending-lambda}
+
+$\Lambda$ is often used as a basis for reasoning about programming languages, on which more and higher-level features can be built.~\cite{tpl} For example, adding explicit substitution and garbage collection: $$
+M \Coloneqq \dots \mid x\langle{x \coloneqq N}\rangle
+$$ then, similarly to $\beta$-reduction, the one-step and contextual closure:~\cite{lambda_xgc, tsfpl}
+$$
+\begin{aligned}
+	&(\textrm{xv})\colon &x\langle{x \coloneqq N}\rangle &\to_{\textrm{xgc}} N \\
+	&(\textrm{xvgc})\colon &x\langle{y \coloneqq N}\rangle &\to_{\textrm{xgc}} x &(y \neq x) \\
+	&(\textrm{xab})\colon &(\lambda{x}.M)\langle{y \coloneqq N}\rangle &\to_{\textrm{xgc}} \lambda{x}.(M\langle{y \coloneqq N}\rangle) \\
+	&(\textrm{xap})\colon &(MM')\langle{y \coloneqq N}\rangle &\to_{\textrm{xgc}} (M\langle{y \coloneqq N}\rangle)(M'\langle{y \coloneqq N}\rangle) \\
+	&(\textrm{gc})\colon &M\langle{x \coloneqq N}\rangle &\to_{\textrm{xgc}} M &\big(x \notin fv(M)\big)
+\end{aligned}
+$$$$
+\begin{aligned}
+	M \to_{\textrm{xgc}} N \Rightarrow \begin{cases}
+		ML &\to_{\textrm{xgc}} NL \\
+		LM &\to_{\textrm{xgc}} LN \\
+		\lambda{x}.M &\to_{\textrm{xgc}} \lambda{x}.N \\
+		M\langle{x \Coloneqq L}\rangle &\to_{\textrm{xgc}} N\langle{x \Coloneqq L}\rangle \\
+		L\langle{x \Coloneqq M}\rangle &\to_{\textrm{xgc}} L\langle{x \Coloneqq N}\rangle
+	\end{cases}
+\end{aligned}
+$$
+
+\subsubsection{Curry type assignment}\label{bg:types:curry}
+The set of types $\mathcal{T}_C$ is ranged over by $A$ as: $$
+A \Coloneqq \varphi \mid (A \to B)
+$$ where $\varphi$ ranges over the set of type variables $\Phi$. \cite{tsfpl}
+
+A \emph{statement} is of the form $M\colon{A}$, where $M$ is the subject and $A$ the predicate. A set of statements forms the context $\Gamma$, for which $x\in{\Gamma}$ iff $\exists A$ such that $x\colon{A}\in\Gamma$.
+
+\begin{defn}Curry type assignment - derivations\label{def:types:curry-derivations}
+	$$
+	\begin{aligned}
+		&(\textrm{Ax}): \Inf{
+			\Gamma,x\colon{A} \vdash_C x\colon{A}
+		} \\
+		\\
+		&(\to\textrm{I}): \Inf[x\notin{\Gamma}]{
+			\Gamma,x\colon{A} \vdash_C M\colon{B}
+		}{
+			\Gamma \vdash_C \lambda{x}.M\colon{A\to{B}}
+		} \\
+		\\
+		&(\to\textrm{E}): \Inf{
+			\Gamma \vdash_C M\colon{A\to{B}} \ \ \ \Gamma \vdash_C M'\colon{A}
+		}{
+			\Gamma \vdash_C MM'\colon{B}
+		}
+	\end{aligned}
+	$$
+\end{defn}
+Where $\Gamma,x\colon{A}$ is written to mean $\Gamma\cup\{x\colon{A}\}$ where either $x\colon{A}\in\Gamma$ or $x\notin\Gamma$.
+
+\begin{defn}Subject reduction\label{def:types:subject-reduction}
+	$$
+	(\Gamma \vdash_C M\colon{A}) \;\&\; (M \twoheadrightarrow_{\beta} N)
+	\;\implies\;
+	\Gamma \vdash_C N\colon{A}
+	$$
+\end{defn}
+
+\begin{defn}Type substitution $S = (\varphi\mapsto{C})\colon{\mathcal{T}_C\to\mathcal{T}_C}$\label{def:types:substitution}
+	$$
+	\begin{aligned}
+		&(\varphi\mapsto{C})\varphi &= \ &C
+		\\
+		&(\varphi\mapsto{C})\varphi' &= \ &\varphi' \ &\ (\varphi'\neq\varphi)
+		\\
+		&(\varphi\mapsto{C})A\to{B} &= \ &((\varphi\mapsto{C})A)\to((\varphi\mapsto{C})B)
+	\end{aligned}
+	$$$$
+	\begin{aligned}
+		S \circ S' &= S(S'A) \\
+		S\Gamma &= \{x\colon{SB} \mid x\colon{B}\in\Gamma\}
+	\end{aligned}
+	$$
+\end{defn}
+Type substitution is provably sound and complete, by induction on the structure of derivations (cf. Definition~\cref{def:types:curry-derivations}). \cite{tsfpl}
+
+As in the untyped $\Lambda$, Curry's system gives a good basis on which to build further abstraction, such as Boolean or variant types. \cite{tpl}
+
+\subsubsection{Algebraic types} \label{bg:types:algebraic}
+
+!TODO
+
+\subsubsection{$\pi$-calculus and session types} \label{bg:types:session}
+
+!TODO

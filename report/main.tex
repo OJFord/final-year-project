@@ -4,7 +4,10 @@
 \usepackage{fvextra}
 \usepackage{csquotes}
 \usepackage[UKenglish]{babel}
-\usepackage[backend=biber, style=numeric]{biblatex}
+\usepackage[backend=biber,style=numeric]{biblatex}
+\usepackage{xcolor}
+\usepackage{footnote}
+% ^ deliberately ordered
 
 \usepackage{includes/derivation}
 
@@ -13,13 +16,14 @@
 \usepackage{amsthm}
 \usepackage{booktabs}
 \usepackage{caption}
+\usepackage{cleveref}
 \usepackage{chngpage}
 \usepackage[shortlabels]{enumitem}
-\usepackage{footnote}
 \usepackage{mathtools}
 \usepackage{multirow}
 \usepackage[newfloat]{minted}
 \usepackage{placeins}
+\usepackage{tikz}\usetikzlibrary{arrows}
 \usepackage{xparse}
 
 \newtheorem{defn}{Definition}
@@ -29,6 +33,15 @@
     \captionof{listing}{\emph{#2}}
     \label{#1}
 }
+
+
+\makeatletter
+\renewcommand\thesection{}
+\renewcommand\thesubsection{\@arabic\c@section.\@arabic\c@subsection}
+\makeatother
+
+\crefformat{section}{\S#2#1#3}
+\newcommand{\cfref}[1]{(cf.~\cref{#1})}
 
 \addbibresource{Zotero.bib}
 
@@ -43,16 +56,11 @@
 
 \setlength{\parskip}{.5em}
 
-\makeatletter
-\renewcommand\thesection{}
-\renewcommand\thesubsection{\@arabic\c@section.\@arabic\c@subsection}
-\makeatother
-
 \begin{document}
 \pagenumbering{roman}
 
-\include{preamble/coversheet}
-\include{preamble/abstract}
+\include{frontmatter/coversheet}
+\include{frontmatter/abstract}
 
 \tableofcontents
 \clearpage
@@ -63,7 +71,7 @@
 \include{solutions/main}
 \include{background/main}
 \include{implementation/main}
-\include{evaluation/main}
+\include{conclusions/main}
 
 \printbibliography
 \end{document}
