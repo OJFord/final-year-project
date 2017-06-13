@@ -6,21 +6,4 @@ The background study for this project consists of other solutions to this or sim
 \input{background/types}
 \input{background/oas}
 \input{background/rust}
-
-\subsection{Design by contract} \label{bg:dbc}
-
-Hoare's logic introduced the `Hoare triple' construction, in which a valid pre-condition $P$ ensures that an expression or program $c$ will result in a valid post-condition $Q$. \cite{hoare_logic}
-
-\begin{defn}Hoare triple \label{def:bg:dbc:hoare-triple}
-\[
-    \left\{P\right\} c \left\{Q\right\}
-\] If $P$ holds, then after evaluating $c$, $Q$ will hold true.
-\end{defn}
-
-`Design by contract' is the metaphorical term used to popularise the application of the Hoare triple to reason about the correctness of functions when programming.
-
-For example, if we wish to chain the functions \code{foo} and \code{bar} as \code{bar(foo(42))} where we have that $\{P\}\operatorname{foo}\{Q\}$ and $\{U\}\operatorname{bar}\{V\}$, we must know that $Q$ is sufficient for $U$ in order to be able to say that $\{P\} \operatorname{bar}\left(\operatorname{foo}\left(42\right)\right) \{V\}$.
-
-The `contract' is figuratively entered into by the caller of a function or method, and the implementer or the function itself. Providing the caller meets a set of `terms' - the precondition - the function will also adhere to its terms - viz. the post-condition.
-
-\emph{rustproof} is a Rust compiler plugin \cfref{bg:rust:plugins} which consumes pre- and post-condition annotations for users' function, and using Dijkstra's predicate transformer semantics generates weakest liberal pre-conditions from the annotations and function body. The SMT solver Z3 is then used to verify the condition $P \implies \operatorname{wlp(S, Q)}$, where $P,Q$ are the supplied conditions, $\operatorname{wlp}$ the weakest pre-condition, and $S$ is the set of statements forming the function body. \cite{rust_rustproof}
+\input{background/dbc}

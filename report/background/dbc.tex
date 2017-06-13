@@ -1,0 +1,21 @@
+\subsection{Design by contract} \label{bg:dbc}
+
+Hoare's logic introduced the `Hoare triple' construction, in which a valid pre-condition $P$ ensures that an expression or program $c$ will result in a valid post-condition $Q$. \cite{hoare_logic}
+
+\begin{defn}Hoare triple \label{def:bg:dbc:hoare-triple}
+\[
+    \left\{P\right\} c \left\{Q\right\}
+\] If $P$ holds, then after evaluating $c$, $Q$ will hold true.
+\end{defn}
+
+`Design by contract' is the metaphorical term used to popularise the application of the Hoare triple to reason about the correctness of functions when programming.
+
+For example, if we wish to chain the functions \code{foo} and \code{bar} as \code{bar(foo(42))} where we have that $\{P\}\operatorname{foo}\{Q\}$ and $\{U\}\operatorname{bar}\{V\}$, we must know that $Q$ is sufficient for $U$ in order to be able to say that $\{P\} \operatorname{bar}\left(\operatorname{foo}\left(42\right)\right) \{V\}$.
+
+The `contract' is figuratively entered into by the caller of a function or method, and the implementer or the function itself. Providing the caller meets a set of `terms' - the precondition - the function will also adhere to its terms - viz. the post-condition.
+
+\emph{rustproof} is a Rust compiler plugin \cfref{bg:rust:plugins} which consumes pre- and post-condition annotations for users' function, and using Dijkstra's predicate transformer semantics generates weakest liberal pre-conditions from the annotations and function body. The SMT solver Z3 is then used to verify the condition $P \implies \operatorname{wlp(S, Q)}$, where $P,Q$ are the supplied conditions, $\operatorname{wlp}$ the weakest pre-condition, and $S$ is the set of statements forming the function body. \cite{rust_rustproof}
+
+An extension to Hoare logic incorporating a predicate to hold even mid-execution of $c$ is `Crash Hoare Logic'; (CHL) in the work inspiring its formulation, the authors developed a functional UNIX filesystem (FSCQ) in \emph{Coq} that is proven to operate correctly if there are no crashes, and also guaranteed to recover from a crash in a consistent state if it does indeed recover at all. \cite{fscq} (No amount of formal verification can prevent a user rebooting the system ad infinitum!)
+
+To some extent, FSCQ challenges the claim in~\cref{intro:req:productivity} that formal verification is too complex and time-consuming for many real-world applications: the six authors implemented the system in around two years, including the development of reusable components like CHL for \emph{Coq}~\cite{fscq}. In contrast, APFS was recently released by \emph{Apple} after nearly four years' development;~\cite{apfs_detail} and likely by a considerably larger team.

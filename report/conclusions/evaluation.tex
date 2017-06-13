@@ -14,9 +14,19 @@ These classes of potential errors are simply the \code{4xx} range of HTTP status
 
 The error is still possible if, for instance, the user supplies a constant resource identifier (or otherwise produces one which does not exist) and the server determines that the user would be authorised to access the resource if it did exist, and that it has not previously existed.
 
-\paragraph{... \\}
+\paragraph{\code{405 Method Not Allowed}:} Similarly, the function to make a request using a particular HTTP verb exists only if it is specified in the schema.
+
+\paragraph{\code{406 Not Acceptable}:} \emph{tapioca} explicitly adds the \code{Accept} header, specifying the formats of response body that are acceptable for the client to receive. In its current implementation, this is limited to \code{application/json}, and only responses of that format are deserialised accordingly. It would be a relatively straightforward task using the modular de/serialisation framework for \emph{serde-rs} to support other structured media types, such as XML.
+
+As it stands, \emph{tapioca} eliminates the possibility of a \code{406} on all endpoints that can provide JSON responses. Other response media types, even if specified in the schema, are presently ignored, since the primary target was REST+JSON APIs - though \emph{tapioca} could certainly be applied to other uses, such as sending typed data to ad hoc RPC endpoints.
+
+\paragraph{\code{409 Conflict}:} !TODO
+
+...
 
 With any of these failure modes, there is an argument to be made that the user can still avoid \emph{tapioca} - make an erroneous request through other means, and it will fail at run-time even if it is one \emph{tapioca} can detect at compile-time. This is trivially true: the programmer must `opt-in' to these checks, which is part of the reasoning for the requirement that an implementation be of benefit to development rather than a hindrance; something to `fight'.
+
+Further, requests made through \emph{tapioca} are only as safe as far as the server guarantees its adherence to its own schema. This is not too restricting though: requests made without \emph{tapioca} also assume the API behaves as documented.
 
 \subsubsection{Enforcing error handling} \label{concl:eval:err-handle}
 
