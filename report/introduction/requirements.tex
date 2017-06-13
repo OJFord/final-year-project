@@ -71,8 +71,4 @@ A `softer', but no less important requirement is that the implementation allows 
 
 Throughout the industry, burdensome technical advantage is traded off again\-st ease of development; the latter almost always wins. The result is that formally verified programs are mostly confined to research, and even compiled languages seem increasingly to be used only where necessary, with efforts to bring higher-level languages such as JavaScript to desktop platforms,~\cite{electron} and even to embedded devices~\cite{jerryscript}. Statically typed languages represent a cross-section that seems somewhat resistant to this trend, with projects such as the popular TypeScript~\cite{typescript} that transpiles to JS offering the boost to productivity that comes with the earlier warning of a large category of errors.
 
-\begin{quote}
-[Researchers in the 1980s] predicted that the programming world would embrace with gratitude every assistance promised by formalisation to solve the problems of reliability ... It has turned out that the world just does not suffer significantly from the kind of problem that our research was originally intended to solve. \cite{hoare_quote}
-\end{quote}\rightline{\rm --- Professor Sir Tony Hoare}
-
 Thus, the implementation discussed here should be an aid, not a hindrance, to the user. It should make handling failure modes discussed in \cref{intro:req:unpreventable} straightforward, be transparent about why certain options are unavailable, and, in accordance with \cref{intro:motivation}, be of benefit to the development of the client device without impacting or requiring changes on any server with which it communicates.
