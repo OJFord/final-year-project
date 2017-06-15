@@ -1,14 +1,16 @@
-\subsection{Evaluating Tapioca} \label{concl:eval}
+\subsection{Tapioca} \label{eval:tapioca}
 
 In order to evaluate \emph{tapioca} as a solution to the problem of errors in API usage, we refer to the initial statement of requirements in \ref{intro:req}.
 
-\subsubsection{Preventing client errors} \label{concl:eval:prevent}
+\subsubsection{Preventing client errors} \label{eval:tapioca:prevent}
 
 From the acceptance tests, as described in \cref{impl:testing}, we can clearly define classes of error in API usage that \emph{tapioca} is able to prevent.
 
-These classes of potential errors are simply the \code{4xx} range of HTTP status codes as discussed in \cref{intro:req:preventable}. Since one of the measurements of success for an implementation was the client errors it is able to prevent, as part of the evaluation for \emph{tapioca} we briefly discuss each one here. 
+These classes of potential errors are simply the \code{4xx} range of HTTP status codes as discussed in \cref{intro:req:preventable}. Since one of the measurements of success for an implementation was the client errors it is able to prevent, as part of the evaluation for \emph{tapioca} we briefly discuss here each one of those anticipated to be preventable,~\cfref{tbl:req:preventable-errors} in addition to others unanticipated, or partially preventable through dependency checking. A list of all \code{4xx} errors, along with \emph{tapioca}'s coverage, is given in~\cref{tbl:eval:client-errors}.
 
 \paragraph{\code{400 Bad Request}:} !TODO
+
+\paragraph{\code{401 Unauthorized}:} !TODO
 
 \paragraph{\code{404 Not Found}:} Since \emph{tapioca} provides an interface only for the paths that exist, a \code{404} due to an incorrect path cannot occur through its use.
 
@@ -20,7 +22,22 @@ The error is still possible if, for instance, the user supplies a constant resou
 
 As it stands, \emph{tapioca} eliminates the possibility of a \code{406} on all endpoints that can provide JSON responses. Other response media types, even if specified in the schema, are presently ignored, since the primary target was REST+JSON APIs - though \emph{tapioca} could certainly be applied to other uses, such as sending typed data to ad hoc RPC endpoints.
 
+\paragraph{\code{407 Proxy Authentication Required}:} !TODO
+
 \paragraph{\code{409 Conflict}:} !TODO
+
+\paragraph{\code{410 Gone}:} !TODO
+
+\paragraph{\code{411 Length Required}:} \emph{tapioca} ensures that the \code{Content\--Length} header is always set, eliminating this possibility.
+
+\paragraph{\code{412 Precondition Failed}:} !TODO
+
+\paragraph{\code{415 Unsupported Media Type}:} !TODO
+\paragraph{\code{417 Expectation Failed}:} !TODO
+\paragraph{\code{421 Misdirected Request}:} !TODO
+\paragraph{\code{424 Failed Dependency}:} !TODO
+\paragraph{\code{426 Upgrade Required}:} !TODO
+\paragraph{\code{428 Precondition Required}:} !TODO
 
 ...
 
@@ -28,13 +45,84 @@ With any of these failure modes, there is an argument to be made that the user c
 
 Further, requests made through \emph{tapioca} are only as safe as far as the server guarantees its adherence to its own schema. This is not too restricting though: requests made without \emph{tapioca} also assume the API behaves as documented.
 
+\Cref{tbl:eval:client-errors} summarises \emph{tapioca}'s ability to prevent the standard~\cite{rfc7231} HTTP client error status codes compared to those that were anticipated to be preventable in the project requirements,~\cfref{intro:req:preventable} and those that it is now believed could be prevented with further work. Here \hmark\; denotes partial prevention: a single client is prevented from inflicting these errors on itself, but of course other clients may access the same resource, and for example \code{DELETE} another's dependency.
+
+\begin{spacing}{\tblspacing}
+\begin{table}[!hp]
+\caption{\emph{Tapioca's ability to prevent HTTP client errors}}
+\label{tbl:eval:client-errors}
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Status Code} & \textbf{Anticipated} & \textbf{Implemented} & \textbf{Future}
+\\\midrule
+400 Bad Request & \cmark & \cmark & 
+\\\cmidrule(lr){1-4}
+401 Unauthorized & \cmark & &
+\\\cmidrule(lr){1-4}
+402 Payment Required & \xmark & & 
+\\\cmidrule(lr){1-4}
+403 Forbidden & \xmark & &
+\\\cmidrule(lr){1-4}
+404 Not Found & \cmark & \cmark &
+\\\cmidrule(lr){1-4}
+405 Method Not Allowed & \cmark & \cmark &
+\\\cmidrule(lr){1-4}
+406 Not Acceptable & \cmark & \cmark &
+\\\cmidrule(lr){1-4}
+407 Proxy Authentication Required & \cmark & &
+\\\cmidrule(lr){1-4}
+408 Request Timeout & \xmark & &
+\\\cmidrule(lr){1-4}
+409 Conflict & \xmark &  &
+\\\cmidrule(lr){1-4}
+410 Gone & \xmark & &
+\\\cmidrule(lr){1-4}
+411 Length Required & \cmark & &
+\\\cmidrule(lr){1-4}
+412 Precondition Failed & \cmark & &
+\\\cmidrule(lr){1-4}
+413 Payload Too Large & \xmark & & \hmark
+\\\cmidrule(lr){1-4}
+414 Request-URI Too Long & \xmark & & \cmark
+\\\cmidrule(lr){1-4}
+415 Unsupported Media Type & \cmark & &
+\\\cmidrule(lr){1-4}
+416 Requested Range Not Satisfiable & & &
+\\\cmidrule(lr){1-4}
+417 Expectation Failed & \cmark & &
+\\\cmidrule(lr){1-4}
+418 I'm a teapot & \xmark & &
+\\\cmidrule(lr){1-4}
+421 Misdirected Request & \cmark & &
+\\\cmidrule(lr){1-4}
+422 Unprocessable Entity & \xmark & &
+\\\cmidrule(lr){1-4}
+423 Locked & \xmark & &
+\\\cmidrule(lr){1-4}
+424 Failed Dependency & \cmark & &
+\\\cmidrule(lr){1-4}
+426 Upgrade Required & \cmark & &
+\\\cmidrule(lr){1-4}
+428 Precondition Required & \cmark & &
+\\\cmidrule(lr){1-4}
+429 Too Many Requests & \xmark & &
+\\\cmidrule(lr){1-4}
+431 Request Header Fields Too Large & \xmark & &
+\\\cmidrule(lr){1-4}
+451 Unavailable For Legal Reasons & \xmark & &
+\\\bottomrule
+\end{tabular}
+\end{table}
+\end{spacing}
+
 \subsubsection{Enforcing error handling} \label{concl:eval:err-handle}
 
 By returning Rust's (sum) \mintinline{rust}{Result<O, E>} type, where in \emph{tapioca}'s case each of the \mintinline{rust}{Ok} and \mintinline{rust}{Err} type parameters is an HTTP response; with a success or error code respectively, it is ensured that the programmer acknowledges that a request may not be successful.
 
 Better, since the body of each - viz. \mintinline{rust}{tapioca::ResponseOkBody} and \mintinline{rust}{ResponseErrBody} respectively - is an \mintinline{rust}{enum} type of possible responses, the programmer must use pattern matching to determine how to handle the response data in a type-safe manner according to the structure actually received.
 
-\subsubsection{Developer productivity} \label{concl:eval:productivity}
+\subsubsection{Developer productivity} \label{eval:tapioca:productivity}
 
 However helpful \emph{tapioca} might be to a developer when it can provide a valid correction, productivity could quickly swing for the worse if it failed on a false positive in particular. Any errors in the provided schema would also be damaging to a user's productivity: their correct use of the API would have to wait for them to force the tooling to accept it.
 
@@ -42,7 +130,7 @@ In order to evaluate whether \emph{tapioca} would be a help or hindrance to deve
 
 !TODO: publish a short questionnaire and discuss results
 
-\subsubsection{Summary} \label{concl:eval:summary}
+\subsubsection{Summary} \label{eval:tapioca:summary}
 
 The effectiveness of \emph{tapioca} depends on both the developer writing the client program, and on the API provider to also offer an accurate schema.
 

@@ -27,6 +27,7 @@ To some extent, FSCQ challenges the claim in~\cref{intro:req:productivity}, that
 There remains a significant barrier to entry though; that the FSCQ project is exceptional in spanning both the theoretical and practical disciplines so effectively.~\cite{soft_eng_possible} \Cref{code:coq:fsm} gives an example of a finite state machine in \emph{Coq} modelling the days of the week. There is a fair amount of ceremony involved in even the trivial proof that following the FSM edges (given by the function \code{nextday}\mintinline{coq}{:} \code{weekday} \mintinline{coq}{->} \code{weekday}) brings around to the starting point in exactly seven steps.
 
 \begin{codelisting}{code:coq:fsm}{A simple proof in Coq: week days come around again every seven.}
+\begin{spacing}{\codespacing}
 \begin{minted}[tabsize=4]{coq}
     Inductive weekday: Set :=
         | monday: weekday
@@ -56,6 +57,7 @@ There remains a significant barrier to entry though; that the FSCQ project is ex
         - reflexivity. (* Sunday *)
     Qed.
 \end{minted}
+\end{spacing}
 \end{codelisting}
 
 Considering that the proof in~\cref{code:coq:fsm} neglects the possibility that \code{trans\- day\- n\- =\- day} for some \mintinline{coq}{n < 7}, and probably many other issues making it unsuitable for an ultra-paranoid calendar application, this does not bode well for developer-friendly formally verified programming outside of safety-critical applications.

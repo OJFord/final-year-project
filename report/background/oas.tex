@@ -5,6 +5,7 @@ The Open API Specification (OAS) is a work-in-progress evolution of the propriet
 The specification consists of multiple `objects' describing security, available paths, possible responses, the structure of requests, etc. - it is the `schema object' for the structure of request bodies that will be of most interest.
 
 \begin{codelisting}{code:OAS:schema-obj}{Example of an OAS Schema Object}
+\begin{spacing}{\codespacing}
 \begin{minted}[tabsize=2]{yaml}
 type: object
 required:
@@ -19,11 +20,13 @@ properties:
     format: int32
     minimum: 0
 \end{minted}
+\end{spacing}
 \end{codelisting}
 
 For example, \cref{code:OAS:schema-obj} gives an OAS schema object that describes an object with at least a \code{name} field, and optionally an \code{address} and \code{age}. It also specifies that \code{name} is of type \code{string}, \code{age} is an unsigned $32$-bit integer, and the type of \code{address} is defined elsewhere in the document (in the `definitions object') to enable reuse.
 
 \begin{codelisting}{code:OAS:path-obj}{Example of an OAS Path Object}
+\begin{spacing}{\codespacing}
 \begin{minted}[tabsize=2]{yaml}
 /addresses:
   summary: Address book endpoint
@@ -63,6 +66,7 @@ For example, \cref{code:OAS:schema-obj} gives an OAS schema object that describe
             schema:
               $ref: '#/definitions/Address'
 \end{minted}
+\end{spacing}
 \end{codelisting}
 
 A path object, such as the two top-level entities in \cref{code:OAS:path-obj}, specifies the URI at which a particular endpoint is available, along with the HTTP methods that it accepts. For each endpoint, it then gives a description of the structure of expected requests, and that of the server's response.

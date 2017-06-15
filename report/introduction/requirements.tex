@@ -9,7 +9,8 @@ HTTP's client error status codes include `\code{405} Method Not Allowed', indica
 
 Thus, the system should aim to prevent the possibility, so far as possible, of errors occurring due to bugs in the client device code. \Cref{tbl:req:preventable-errors} details the codes it is expected to be possible to prevent.
 
-\begin{table}[!h]
+\begin{spacing}{1.1}
+\begin{table}[!ht]
 \caption{\emph{Client errors anticipated to be compile-time avoidable}}
 \label{tbl:req:preventable-errors}
 \centering
@@ -51,6 +52,7 @@ Thus, the system should aim to prevent the possibility, so far as possible, of e
 \end{tabular}
 \end{adjustwidth}
 \end{table}
+\end{spacing}
 
 \Cref{tbl:req:preventable-errors} forms a proper subset of possible client errors, since some such as \code{410 Gone} (which indicates a resource did exist, but no longer does), \code{403 Forbidden} (user has correctly authenticated, but is not authorised for this action), and \code{409 Conflict} (modification to the resource is in conflict with its a priori state) are caused by some aspect variable in the lifetime of the application.
 

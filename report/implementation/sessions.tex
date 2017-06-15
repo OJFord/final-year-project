@@ -1,0 +1,26 @@
+\subsection{Stateful sessions} \label{impl:sessions}
+
+In order validate stateful interactions through a course of multiple API requests, it was initially intended to add a lint pass through the compiler's plugin interface; operating on one of the intermediate representations.~\cfref{bg:rust:plugins,bg:rust:ir,impl:proposal}~\cite{interim}
+
+During the course of implementation however, and since this project's interim report,~\cite{interim} the public interface to \emph{rustc}'s MIR passes was removed.~\cite{rust_pr40239} Whilst not catastrophic in itself, as late-stage HIR passes still have access to type information, since a new implementation would be needed anyway the setback afforded some time to re-evaluate the approach.
+
+As noted in~\cref{bg:rust:compiler-services}, the compiler's type and borrow checkers may be viewed as tools with which the programmer stops himself from committing all manner of human err. In generating code with arguments and responses strongly typed to match the API schema, \emph{tapioca} leans on the type-checker to perform the unification and ensure that the types sent and expected in response by the programmer conform to the schema.~\cfref{impl:inference} Analogously, on re-evaluating the approach, it made sense to leverage the borrow-checker for analysing stateful interactions.
+
+We can model a system of dependency between potential requests, over which we wish to check actualised requests, as a directed acyclic graph (DAG) $\langle{R,E}\rangle$: directed because we have a request $r_1$ that depends on a request $r_2$; acyclic because any well-formed\footnote{and all bets are already off for malformed APIs or schemata} API clearly does not have a set of requests $R$ for which any two depend on each other - viz.:\[
+\nexists{\{r_1,r_2\}\subseteq{R}}\colon\quad
+(r_1, r_2)\in{E} \;\wedge\; (r_2, r_1)\in{E}
+\]
+
+The DAG can then be used to define a strict partial order on the vertex set $R$ by reachability. For convenience, we define its negation $\nless_{E}$ to be such that:\[
+\forall{r_1,r_2\in{R}}\colon\quad
+(r_1, r_2)\in{\nless_{E}} \;\iff\; (r_1, r_2)\notin{E^{+}}
+\] where $E^{+}$ denotes the transitive closure of $E$ over $R$.
+
+For a sequence of requests $S$, let $<_{S}$ denote a strict total order on $S$, defined by $(s_i, s_j)\in{<_{S}} \iff i<j$, where $i,j$ index the sequence. That is, $r_a <_{S} r_b$ iff $r_a\in{R}$ is a request that occurs prior to the request $r_b$.
+
+Then, a valid sequence of requests is one for which:\[
+\forall{r_1,r_2\in{S}}\colon\quad
+r_1 <_{S} r_2 \;\implies\; r_2 \nless_{E} r_1
+\] in other words, it is valid only if it contains no ordered pair of requests which the DAG - constructed from the schema - holds in the reverse order.
+
+This model is resemblant of \emph{rust} lifetimes; by attaching a lifetime to the aspect of a request $r_1$ that is depended upon by $r_2$, and requiring that lifetime when making the latter request, the borrow-checker will do the work of ensuring $r_1 <_{S} r_2$ holds for us.

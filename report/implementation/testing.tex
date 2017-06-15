@@ -1,0 +1,13 @@
+\subsection{Testing} \label{impl:testing}
+
+A suite of sample schemata is used in integration testing, against which we try to compile test cases of both the `should compile' and `should fail to compile' varieties. This provides not only a benchmark for identifying regression, but also tracking of implemented features.
+
+A successful test is one that either:
+\begin{enumerate}[(a)]
+	\item Contains a sample program exhibiting \emph{correct} API use, and compilation \emph{succeeds};
+	\item Contains a sample program that attempts to use an API in a manner \emph{not} permitted by the schema, and compilation \emph{fails}.
+\end{enumerate}
+
+Fuzzing is used in order to prevent `over-fitting' to the test cases.
+
+!TODO: much more.

@@ -13,9 +13,11 @@
 \vskip 0.75in
 
 \begin{abstract}
+\begin{spacing}{1.25}
 
 This project investigates the extent to which errors in the programmatic use of web APIs can be detected, and subsequently prevented, through static analysis. The emphasis is on an implementation of a library~\cite{tapioca} for the Rust programming language to facilitate such detection, and to halt compilation. Rust's type system is leveraged together with its pattern matching paradigm to provide a statically typed interface to a REST API, of which the correct use is inferred from a given schema; in accordance with the OAI specification. We further investigate an IR pass to analyse stateful interactions with the API spanning multiple requests. Finally, alternative solutions to the general problem of interface misuse are examined, and used as a benchmark against which to evaluate that presented here.
 
+\end{spacing}
 \end{abstract}
 
 \thispagestyle{empty}

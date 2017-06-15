@@ -1,0 +1,48 @@
+\subsection{Error reporting} \label{impl:reporting}
+
+In the event of type errors in the single use of an API in user code, the error is ultimately and detected by the built-in mechanisms. Since the query parameters, path arguments, et al. are each standard Rust types, the compiler type-checks the arguments to a \emph{tapioca} request as it does any other function: \mintinline{rust}{infer_api!} essentially translates the semantics of an OAS schema to Rust, and allows the compiler to handle the rest.
+
+\Cref{code:impl:reporting:type-err} gives an example of the compiler reporting on erroneous use of a \emph{tapioca}-inferred API.
+
+\begin{codelisting}{code:impl:reporting:type-err}{Example of an error being reported from an invalid type used in an API request}
+\begin{spacing}{\codespacing}
+\begin{minted}[tabsize=4]{rust}
+// excerpt from examples/uber-error.rs
+    use uber::products;
+    
+    let query = products::get::QueryParams {
+        latitude: "10.3",
+        longitude: 237.8,
+    };
+    products::get(query)?;
+// end excerpt
+\end{minted}
+\begin{minted}[tabsize=4]{sh}
+    $ cargo run --example uber-error
+    error[E0308]: mismatched types
+      --> examples/uber-error.rs:14:19
+       |
+    14 |         latitude: "10.3",
+       |                   ^^^^^^ expected f64, found reference
+       |
+       = note: expected type `f64`
+                  found type `&'static str`
+\end{minted}
+\end{spacing}
+\end{codelisting}
+
+Issues identified during the lint pass, pertaining to violation of a required ordering, or requests missing altogether, are emitted as a compiler warning via the plugin interface. \cfref{bg:rust:plugins}
+
+\Cref{code:impl:reporting:lint} shows a user program that erroneously attempts to create a resource prior to one on which it depends.
+
+\begin{codelisting}{code:impl:reporting:lint}{Example of lint warning of creating dependant before dependency resource}
+\begin{spacing}{\codespacing}
+\begin{minted}[tabsize=4]{rust}
+// !TODO
+\end{minted}
+\begin{minted}[tabsize=4]{sh}
+\end{minted}
+\end{spacing}
+\end{codelisting}
+
+Warnings were chosen rather than (compilation-failing) errors in recognition that the programmer may know something about the state of the server resources that the lint pass cannot, and choose to ignore it. If such is the case, Rust allows him to then annotate the offending call with \mintinline{rust}{#[allow(LINT_NAME)]} in order to silence that particular instance of the warning in future compilations.

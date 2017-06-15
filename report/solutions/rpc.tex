@@ -14,6 +14,7 @@ Protocol buffers, such as \emph{Google}'s protobuf~\cite{protobuf} and \emph{Cap
 This requires the client and server to share (or each be compiled against) a common protocol definition file. \Cref{code:rpc:capnp-def} shows an excerpt of such a specification for the \emph{Cap'n Proto} scheme.
 
 \begin{codelisting}{code:rpc:capnp-def}{Example \emph{Cap'n Proto} RPC interface definition~\cite{capnp_example}}
+\begin{spacing}{1.0}
 \begin{minted}[tabsize=4]{capnp}
 interface Calculator {
     evaluate @0 (expression :Expression) -> (value :Value);
@@ -37,6 +38,7 @@ interface Calculator {
         }
     }
 \end{minted}
+\end{spacing}
 \end{codelisting}
 
 A definition such as in~\cref{code:rpc:capnp-def} does not detail how it used, it acts merely like a `header' file in C-like languages: a list of interfaces, and the contract~\cfref{bg:verification:dbc} for using them.
