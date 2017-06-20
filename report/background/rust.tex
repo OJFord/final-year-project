@@ -2,21 +2,21 @@
 
 The \emph{rust} programming language is designed for `[memory] safety, speed, and concurrency', achieved through `many zero-cost abstractions'. These include `ownership', which ensures exactly one binding for a resource; scoped `borrowing' (from the `owner') of references, where at any one time there are either immutable references borrowed, or a single mutable reference - making data races impossible - and `lifetimes' which ensure a borrowed reference is not used after having been freed. \cite{rust_book}
 
-The \emph{rust} compiler offers two key services (bemoaned by novice users as fonts of errors to be `fought') that are of service to the programmer:
+The \emph{rust} compiler offers two key services (bemoaned by novice users as fonts of errors to be `fought'~\cite{fighting_borrowck}) that are of service to the programmer:
 \begin{enumerate}[(a)] \label{bg:rust:compiler-services}
     \item Type-checking: !TODO
-    \item Borrow-checking: !TODO
+    \item Borrow-checking: eliminates the need for garbage collection (GC) while still preventing `use after free' by refusing to compile code that lends a reference to a borrower that outlives the owner.~\cite{rust_book, rust_nomicon}
 \end{enumerate}
 
 \subsubsection{Language} \label{bg:rust:lang}
 
-The language is statically typed, offers algebraic data types \cfref{bg:types:algebraic} and their de-structuring via pattern matching; \cite{rust_match_mut_move} static dispatch with `trait bounds' to limit genericity of functions (`monomorphised' at compile-time)~\cite{rust_book} and dynamic dispatch via `trait objects', analogous to type classes in other languages, such as Haskell~\cite{rust_functional}. \cite{rust_type_system}
+The language is statically typed, offers algebraic data types \cfref{bg:types:algebraic} and their de-structuring via pattern matching; \cite{rust_match_mut_move} static dispatch with `trait bounds' to limit genericity of functions (`monomorphised' at compile-time)~\cite{rust_book} and dynamic dispatch via `trait objects', analogous to type classes~\cite{rust_functional} in other languages, such as Haskell. \cite{rust_type_system}
 
 \begin{codelisting}{code:rust:trait-bounds}{An example trait bounding in Rust. \mintinline{rust}{introduce_dog} will be `monomorphised': instantiated for the concrete type \mintinline{rust}{IrishTerrier} to enable static dispatch.}
 \begin{spacing}{\codespacing}
 \begin{minted}[tabsize=4]{rust}
     trait IsDog {
-        fn breed(&self) ->& str;
+        fn breed(&self) -> &str;
         fn name(&self) -> &str;
     }
     
@@ -52,11 +52,19 @@ Like other systems programming languages, Rust's standard library does not inclu
 
 \emph{hyper} is a third-party HTTP library for Rust, which offers `a low-level type-safe abstraction over raw HTTP, providing an elegant layer over ``stringly-typed'' HTTP'. The client provides typed access to the response status code, headers, and implements the \code{Read} trait for access to the response body. \cite{rust_http_hyper}
 
-Other HTTP client implementations include the less popular \emph{solicit}~\cite{rust_http_solicit} which implements \code{HTTP/2}, and \emph{Teepee} - on which development has `stalled'~\cite{rust_http_teepee}.
+Other HTTP client implementations include the less popular \emph{solicit}~\cite{rust_http_solicit} which implements \code{HTTP/2}, and \emph{Teepee}~\cite{rust_http_teepee} - on which development has `stalled'.
 
-\subsubsection{Types} \label{bg:rust:types}
+\emph{reqwest} builds a higher-level abstraction on top of \emph{hyper} to support HTTP both with and without TLS; through the same interface and with the TLS handshake (if applicable) handled automatically.~\cite{reqwest}
+
+The wealth of HTTP libraries means that there no one single interface or set of types used, and an alternative library unknown today could be widely used in the future.
+
+\subsubsection{Types \& type-checking} \label{bg:rust:types}
 
 !TODO: focus on practical use in Rust, with close reference to more theoretical treatment in \cref{bg:types:algebraic}
+
+\subsubsection{Lifetimes \& borrow-checking} \label{bg:rust:borrows}
+
+!TODO
 
 \subsubsection{Declarative macros} \label{bg:rust:decl-macros}
 Macros in \emph{rust} can be either declarative, as in \cref{code:rust:decl-macro}, or procedural. The declarative variety (`macros by example'~\cite{macro_by_example}) match a pattern in their input, and emit the code in the corresponding block~\cite{rust_macros_overview}.
@@ -112,7 +120,7 @@ As with other procedural macros \cfref{bg:rust:proc-macros}, syntax extensions r
     let five: u8 = 26 - roman!(XI);
 }
 
-A `normal' function could only offer this functionality if the argument \mintinline{rust}{XI} were given instead as a string, \mintinline{rust}{"XI"}; here \mintinline{rust}{XI} has become part of the syntax, it's a token representing a numeral of no lower standing than it's built-in counterpart \mintinline{rust}{11}.
+A `normal' function could only offer this functionality if the argument \mintinline{rust}{XI} were given instead as a string, \mintinline{rust}{"XI"}; here \mintinline{rust}{XI} has become part of the syntax, it is a token representing a numeral of no lower standing than its built-in counterpart \mintinline{rust}{11}.
 
 Syntax extensions differ from other procedural macros in implementation: 
 a separate function registers the macro procedure with the compiler, and thus while the macro has access to greater context, and the ability to float errors and warnings, it is considered unstable. The \mintinline{rust}{#[proc_macro*]} variants are essentially efforts to stabilise the common use-cases for syntax-extending compiler plugins. \cite{rust_macros_overview, rust_book}
@@ -163,29 +171,33 @@ N/A\footnote{Though this project's interim report described a \mintinline{rust}{
 
 The \emph{rust} compiler progresses through a number of abstract representations prior to producing a final, runnable binary. \Cref{fig:rust:compiler-stages} shows the progress through these stages, along with the function each allows it to perform. \cite{rust_intro_mir}
 
-\begin{figure}[!h]
+\begin{figure}[!ht]
     \centering
     \tikzstyle{stage}=[draw, minimum size=2em]
-    \tikzstyle{check} = [pin edge={to-,thin,black}]
+    \tikzstyle{check}=[pin edge={to-,thin,black}]
     \begin{tikzpicture}[node distance=2.5cm,auto,>=latex']
-        \centering
         \node [stage] (b) {AST};
+    
         \node (a) [left of=b,node distance=2cm, coordinate] {b};
+    
         \node [stage, pin={[check]above:{
             type-check
         }}] (c) [right of=b] {HIR};
+    
         \node [stage, pin={[check]above:\parbox{2.5cm}{\centering
             borrow-check; optimisations
         }}] (d) [right of=c] {MIR};
+    
         \node [stage, pin={[check]above:{
             optimisations
         }}] (e) [right of=d] {LLVM IR};
+
         \node [coordinate] (end) [right of=e, node distance=2cm]{};
         \path[->] (a) edge node {} (b);
         \path[->] (b) edge node {} (c);
-        \draw[->] (c) edge node {} (d);
-        \draw[->] (d) edge node {} (e);
-        \draw[->] (e) edge node {} (end);
+        \path[->] (c) edge node {} (d);
+        \path[->] (d) edge node {} (e);
+        \path[->] (e) edge node {} (end);
     \end{tikzpicture}
     \caption{Stages of the \emph{rust} compiler}
     \label{fig:rust:compiler-stages}
@@ -199,21 +211,20 @@ The lowering of HIR to MIR is more involved. For each function, a MIR definition
 
 Each basic block consists of an identifier, sequence of statements, and a terminator, as described in \cref{code:rust:bb-grammar}.~\cite{rust_rfc1211} An explicit CFG is then constructed from the basic block data; which can then be traversed in pre- or post-orders.
 
-\begin{codelisting}{code:rust:bb-grammar}{BNF grammar of MIR basic blocks}
+\begin{codelisting}{code:rust:bb-grammar}{EBNF~\cite{ebnf} grammar of MIR basic blocks}
 \begin{spacing}{\codespacing}
-\begin{minted}[tabsize=4]{bnf}
-    BASIC_BLOCK ::= BB_IDENT ':' STATEMENT TERMINATOR
-
-    BB_IDENT ::= 'bb' INTEGER
-
-    STATEMENT ::= LVALUE '=' RVALUE ';'
+\begin{minted}[tabsize=4]{ebnf}
+    BLOCK = IDENT ':' STATEMENT TERMINATOR;
+    IDENT = 'bb' INTEGER;
+    STATEMENT = LVALUE '=' RVALUE ';'
         | STATEMENT STATEMENT
         | 'drop' '(' DROP_KIND ',' LVALUE ')'
-
-    TERMINATOR ::= 'goto' ( BB_IDENT )
-        | 'if' '(' LVALUE ',' BB_IDENT ',' BB_IDENT ')'
-        // abridged for brevity
+        ;
+    TERMINATOR ::= 'goto' '(' IDENT ')'
+        | 'if' '(' LVALUE ',' IDENT ',' IDENT ')'
+        (* abridged for brevity *)
         | 'return'
+        ;
 \end{minted}
 \end{spacing}
 \end{codelisting}

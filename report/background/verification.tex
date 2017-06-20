@@ -24,7 +24,7 @@ An extension to Hoare logic~\cfref{bg:verification:dbc} incorporating a predicat
 
 To some extent, FSCQ challenges the claim in~\cref{intro:req:productivity}, that formal verification is too complex and time-consuming for many real-world applications: the six authors implemented the system in around two years, including the development of reusable components like CHL for \emph{Coq}~\cite{fscq}. In contrast, APFS was recently released by \emph{Apple} after nearly four years' development;~\cite{apfs_detail} and likely by a considerably larger team.
 
-There remains a significant barrier to entry though; that the FSCQ project is exceptional in spanning both the theoretical and practical disciplines so effectively.~\cite{soft_eng_possible} \Cref{code:coq:fsm} gives an example of a finite state machine in \emph{Coq} modelling the days of the week. There is a fair amount of ceremony involved in even the trivial proof that following the FSM edges (given by the function \code{nextday}\mintinline{coq}{:} \code{weekday} \mintinline{coq}{->} \code{weekday}) brings around to the starting point in exactly seven steps.
+There remains a significant barrier to entry though; that the FSCQ project is exceptional in spanning both the theoretical and practical disciplines so effectively.~\cite{soft_eng_possible} \Cref{code:coq:fsm} gives an example of a finite state machine in \emph{Coq} modelling the days of the week. There is a fair amount of ceremony involved in even the trivial proof that following the FSM edges (given by the function \code{nextday}\mintinline{coq}{:} \code{weekday} \mintinline{coq}{->} \code{weekday}) brings us around to our start state in exactly seven steps.
 
 \begin{codelisting}{code:coq:fsm}{A simple proof in Coq: week days come around again every seven.}
 \begin{spacing}{\codespacing}
@@ -64,7 +64,7 @@ Considering that the proof in~\cref{code:coq:fsm} neglects the possibility that 
 
 Further, even once a \emph{Coq}-assisted proof is complete, we still have an extra build step in order to `extract' the target language - ML variants, Haskell, etc. - before we can compile as usual.~\cite{coq_extraction} Without this step, and perhaps hand-written source code that is believed to be equivalent, the \emph{Coq} proof only tells us that a correct solution exists; not that we have it.
 
-Perhaps the day will come when formal verification is sufficiently straightforward to be worthwhile for `every-day' calendar applications and the like. For the purposes of this project, though, some sacrifice of formalism - and thus of \emph{proof} - seems well justified for the corresponding gain in developer productivity.
+Perhaps the day will come when formal verification is sufficiently straightforward to be worthwhile for `everyday' calendar applications and the like. For the purposes of this project, though, some sacrifice of formalism - and thus of \emph{proof} - seems well justified for the corresponding gain in developer productivity.
 
 \begin{quote}
 [Researchers in the 1980s] predicted that the programming world would embrace with gratitude every assistance promised by formalisation to solve the problems of reliability ... It has turned out that the world just does not suffer significantly from the kind of problem that our research was originally intended to solve. \cite{hoare_quote}

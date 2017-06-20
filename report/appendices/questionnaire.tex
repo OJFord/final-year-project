@@ -1,0 +1,38 @@
+\section{Questionnaire on Productive Use of Web APIs} \label{appx:questionnaire}
+
+The questionnaire, targeting \emph{rust} users, asked:~\cite{questionnaire}
+\begin{enumerate}[a]
+    \item\label{appx:questionnaire:appeal}
+    Does the idea of typed API access, resource lifetimes, and pattern-matching on response statuses appeal to you?
+    \\ \emph{Very much} | \emph{Yes, a bit} | \emph{Not really} | \emph{It sounds actively bad}
+    \item\label{appx:questionnaire:productivity}
+    Assume an OAS schema exists for the API you want to use. Do you think this sort of access would make you more or less productive? \\ \emph{More} | \emph{No different} | \emph{Less}
+    \item\label{appx:questionnaire:favoured} If both an OAS schema and gRPC .proto specs existed for an API, what would be your preferred method of access?
+    \\ \emph{Tapioca-style, driven by the OAS schema}
+    \\| \emph{gRPC (or Cap'n Proto, or other RPC framework)}
+    \\| \emph{Direct access to the HTTP endpoints without using the OAS schema}
+\end{enumerate}
+
+\Cref{tbl:appx:questionnaire} lists the responses collected from 18-21 June.
+
+\begin{spacing}{\tblspacing}
+\centering
+\begin{table}[!ht]
+\caption{\emph{Responses to questionnaire on productivity using web APIs}}
+\label{tbl:appx:questionnaire}
+\centering
+\begin{tabular}{p{2cm}|p{3cm}|p{6cm}}%
+    \toprule
+    \textbf{Appeal} (\cref{appx:questionnaire:appeal}) & \textbf{Productivity change} (\cref{appx:questionnaire:productivity}) & \textbf{Favoured method of access} (\cref{appx:questionnaire:favoured})
+    \\\midrule
+    "Yes, a bit" & "More" & "Direct access to the HTTP endpoints without using the OAS schema"
+    \\\cmidrule(lr){1-3}
+    "Very much" & "No different" & "Direct access to the HTTP endpoints without using the OAS schema"
+    \\\cmidrule(lr){1-3}
+    "Very much" & "More" & "Tapioca-style, driven by the OAS schema"
+    \\\cmidrule(lr){1-3}
+    "Very much" & "More" & "gRPC (or Cap'n Proto, or other RPC framework)"
+    \\\bottomrule
+\end{tabular}
+\end{table}
+\end{spacing}

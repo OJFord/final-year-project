@@ -8,9 +8,13 @@ From the acceptance tests, as described in \cref{impl:testing}, we can clearly d
 
 These classes of potential errors are simply the \code{4xx} range of HTTP status codes as discussed in \cref{intro:req:preventable}. Since one of the measurements of success for an implementation was the client errors it is able to prevent, as part of the evaluation for \emph{tapioca} we briefly discuss here each one of those anticipated to be preventable,~\cfref{tbl:req:preventable-errors} in addition to others unanticipated, or partially preventable through dependency checking. A list of all \code{4xx} errors, along with \emph{tapioca}'s coverage, is given in~\cref{tbl:eval:client-errors}.
 
-\paragraph{\code{400 Bad Request}:} !TODO
+\paragraph{\code{400 Bad Request}:} Request functions in \emph{tapioca} require an argument containing the request body, if one is specified by the API schema. This argument is expected to have the algebraic type~\cfref{bg:types:algebraic,bg:rust:types} defined by the schema, and is only then serialised~\cite{serde} to JSON.
 
-\paragraph{\code{401 Unauthorized}:} !TODO
+This is sufficient to prevent the error occurring with requests to the API at compile-time: the client software's type-checker is doing the validation otherwise done by the server software's application logic.
+
+\paragraph{\code{401 Unauthorized}:} The request function signatures each require an authorisation argument of type \code{ServerAuth} or \code{OpAuth}, according to whether or not the schema for the operation has a security requirements object~\cite{oas_v3} that overrides the server-wide requirement. This enforces that the programmer has at least considered authorisation, but of course this does not stop him from providing invalid credentials.
+
+This argument is always required, even if there is no authorisation required by the server; in which case the argument is simply a unit struct, constructed by \mintinline{rust}{api::ServerAuth::new()}. This decision adds boilerplate to user code, but follows the principle that `explicit is better than implicit',~\cite{zen_python} means that the programmer acknowledges the lax requirement, and makes adding real authentication later easier.
 
 \paragraph{\code{404 Not Found}:} Since \emph{tapioca} provides an interface only for the paths that exist, a \code{404} due to an incorrect path cannot occur through its use.
 
@@ -26,7 +30,9 @@ As it stands, \emph{tapioca} eliminates the possibility of a \code{406} on all e
 
 \paragraph{\code{409 Conflict}:} !TODO
 
-\paragraph{\code{410 Gone}:} !TODO
+\paragraph{\code{410 Gone}:} Resource ID parameters, as in `\code{/foo/\{ID\}}, are constructed only from response types, or values with \mintinline{rust}{'static} lifetime. While they are passed by reference to other HTTP methods, the generated \code{DELETE} functions force the value to be moved, meaning that it cannot then be further used; it also cannot be cloned before move.
+
+The result is that client software cannot cause \code{410} for itself, though it may still occur if another device \code{DELETE}s the resource that it later trys to access.
 
 \paragraph{\code{411 Length Required}:} \emph{tapioca} ensures that the \code{Content\--Length} header is always set, eliminating this possibility.
 
@@ -45,7 +51,7 @@ With any of these failure modes, there is an argument to be made that the user c
 
 Further, requests made through \emph{tapioca} are only as safe as far as the server guarantees its adherence to its own schema. This is not too restricting though: requests made without \emph{tapioca} also assume the API behaves as documented.
 
-\Cref{tbl:eval:client-errors} summarises \emph{tapioca}'s ability to prevent the standard~\cite{rfc7231} HTTP client error status codes compared to those that were anticipated to be preventable in the project requirements,~\cfref{intro:req:preventable} and those that it is now believed could be prevented with further work. Here \hmark\; denotes partial prevention: a single client is prevented from inflicting these errors on itself, but of course other clients may access the same resource, and for example \code{DELETE} another's dependency.
+\Cref{tbl:eval:client-errors} summarises \emph{tapioca}'s ability to prevent the standard~\cite{rfc7231} HTTP client error status codes compared to those that were anticipated to be preventable in the project requirements,~\cfref{intro:req:preventable} and those that it is now believed could be prevented with further work. Here \hmark\; denotes partial prevention: a single client is prevented from inflicting these errors on itself, but of course other clients may access the same resource, and for example \code{DELETE} another's dependency. The `preventable' through further work column is left blank where unchanged from the present implementation; a repeated \hmark\; denotes that an improvement is anticipated, though still not total prevention.
 
 \begin{spacing}{\tblspacing}
 \begin{table}[!hp]
@@ -58,11 +64,11 @@ Further, requests made through \emph{tapioca} are only as safe as far as the ser
 \\\midrule
 400 Bad Request & \cmark & \cmark & 
 \\\cmidrule(lr){1-4}
-401 Unauthorized & \cmark & &
+401 Unauthorized & \cmark & \hmark & \hmark
 \\\cmidrule(lr){1-4}
-402 Payment Required & \xmark & & 
+402 Payment Required & \xmark & \xmark & 
 \\\cmidrule(lr){1-4}
-403 Forbidden & \xmark & &
+403 Forbidden & \xmark & \xmark &
 \\\cmidrule(lr){1-4}
 404 Not Found & \cmark & \cmark &
 \\\cmidrule(lr){1-4}
@@ -70,15 +76,15 @@ Further, requests made through \emph{tapioca} are only as safe as far as the ser
 \\\cmidrule(lr){1-4}
 406 Not Acceptable & \cmark & \cmark &
 \\\cmidrule(lr){1-4}
-407 Proxy Authentication Required & \cmark & &
+407 Proxy Authentication Required & \cmark & \xmark & \cmark
 \\\cmidrule(lr){1-4}
-408 Request Timeout & \xmark & &
+408 Request Timeout & \xmark & \xmark &
 \\\cmidrule(lr){1-4}
 409 Conflict & \xmark &  &
 \\\cmidrule(lr){1-4}
-410 Gone & \xmark & &
+410 Gone & \xmark & \hmark & \hmark
 \\\cmidrule(lr){1-4}
-411 Length Required & \cmark & &
+411 Length Required & \cmark & \cmark &
 \\\cmidrule(lr){1-4}
 412 Precondition Failed & \cmark & &
 \\\cmidrule(lr){1-4}
@@ -126,13 +132,13 @@ Better, since the body of each - viz. \mintinline{rust}{tapioca::ResponseOkBody}
 
 However helpful \emph{tapioca} might be to a developer when it can provide a valid correction, productivity could quickly swing for the worse if it failed on a false positive in particular. Any errors in the provided schema would also be damaging to a user's productivity: their correct use of the API would have to wait for them to force the tooling to accept it.
 
-In order to evaluate whether \emph{tapioca} would be a help or hindrance to developers using web APIs, a short questionnaire was published in fora familiar to the target audience.
+In order to evaluate whether \emph{tapioca} would be a help or hindrance to developers using web APIs, a short questionnaire~\cite{questionnaire} was published in fora familiar to the target audience. \cite{questionnaire_reddit, questionnaire_irc}
 
-!TODO: publish a short questionnaire and discuss results
+Though there were not sufficient respondents to draw any statistical conclusions, it is interesting to note that despite uniform appeal, and expecting \emph{tapioca} to have a positive impact on their productivity, respondents still mostly favoured direct access to the REST API with their standard HTTP client of choice. The responses to the questionnaire are given in full in~\cref{appx:questionnaire}.
 
 \subsubsection{Summary} \label{eval:tapioca:summary}
 
-The effectiveness of \emph{tapioca} depends on both the developer writing the client program, and on the API provider to also offer an accurate schema.
+The effectiveness of \emph{tapioca} depends on both the developer writing the client program, and on the API provider, which is also relied upon for an accurate schema.
 
 It has to be believed that the developer is willing to opt-in: the demands are not great, and \emph{tapioca} allows the compiler to extend to HTTP requests the help that Rust developers already enjoy in other areas.
 

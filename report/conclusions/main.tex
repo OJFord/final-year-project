@@ -1,11 +1,15 @@
 \section{Conclusions} \label{concl}
 
+\subsection{Summary} \label{concl:summary}
+
 \subsection{Further work} \label{concl:further}
 
 !TODO: do further work and then discuss what's been cut for time...
+
+The inference of paths, methods, query parameters, et al. is each a separate function with a similar signature. This was originally intended to ease implementation as a visitor pattern~\cite{visitor_pattern} over the schema, but the current implementation simply calls them while looping over the structure. Refactoring the inference to visitors called from \emph{serde}~\cite{serde} while deserialising schemata would have several advantages, including performance, and the ability to set attributes~\cfref{bg:rust:proc-macros} to construct static resource ID parameters,~\cfref{impl:sessions} (this could then enforce single construction, further improving prevention of \code{410}s) or specify that only part of the API should be inferred - useful in constrained resource applications, as many IoT devices are.
 
 As mentioned in the evaluation of \emph{tapioca} as an aid to developer productivity,~\cfref{eval:tapioca:productivity} the benefits of using the library quickly erode when it starts to go wrong. Further work could provide the user with straightforward means to correct an invalid schema, or to stop \emph{tapioca} from failing compilation in case of it being due to a bug in the library, rather than user code.
 
 The project could also be extended to the server-side software implementing the API for a schema, generating stubs with a signature to match the schema. Conversely, it could generate the schema from the type signatures of an existing server-side implementation.
 
-If a device were to be deployed with software compiled against a schema coupled to the server software, (whichever came first) it would have an even stronger claim to the safety of its interaction with that server's web API.
+If a device were to be deployed with software compiled against a schema itself coupled to the server software, regardless of which came first, it would have an even stronger claim to the safety of its interaction with that server's web API.

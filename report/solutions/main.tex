@@ -1,14 +1,15 @@
 \section{Existing solutions} \label{soln}
 
+Here, we discuss some existing products and techniques for combating the issue of incorrect web API usage that this project seeks to address.
+
 \input{solutions/rpc}
-\input{solutions/service-discovery}
+\input{solutions/service-discovery-apigw}
 \input{solutions/api-discovery}
+\input{solutions/testing}
 
 \subsection{Summary} \label{soln:summary}
-RPCs provide a tight-coupling that works excellently when the same user, or company of users, has autonomy over both client and server.
+RPCs provide a tight-coupling that works excellently when the same user, or company of users, has autonomy over both client and server. \cite{client_server_coupling}
 
-Swagger, by contrast, is essentially zero-coupling, but provides a mechanism for an API vendor to maintain synchrony between their documentation and code. Some client stub generators exist, to some extent `forcing' the user to use correct methods and paths. These seem only to exist for high-level languages, though, and without fully matching the request body to an ADT in the client source language. \cite{swagger_oss}
+\emph{Swagger}, by contrast, is essentially zero-coupling, but provides a mechanism for an API vendor to maintain synchrony between their documentation and code. Some client stub generators exist, to some extent `forcing' the user to use correct methods and paths. These seem only to exist for high-level languages, though, and without fully matching the request body to an abstract datatype in the client source language. \cite{swagger_oss}
 
-Thus, there seems to be space for a solution that ties client and server more tightly than existing Swagger tooling, but maintaining the REST resource-access pattern distinct from RPC.
-
-This would allow the solution to meet the specified `soft' requirements \cfref{intro:req:productivity} of not disrupting existing work-flow, while allowing greater scope for detecting errors in client usage of an API, as compared to the referenced server's expectation.
+Thus, there seems to be space for a solution that ties client and server more tightly than existing \emph{Swagger} tooling, but maintains the RESTful resource-access pattern distinct from RPC. This would allow the solution to meet the specified requirements~\cfref{intro:req:productivity} of not disrupting existing work-flow, while affording scope for detecting errors in the client's use of the API according to the referenced schema.

@@ -1,5 +1,7 @@
 \subsection{Type theory}\label{bg:types}
 
+A summary review of some basic definitions in type theory is presented here to aid in conceptualising the practical implementation in~\cref{impl:proposal:lang,impl:inference,impl:sessions}.
+
 \subsubsection{$\lambda$-calculus}\label{bg:types:lambda-calculus}
 The untyped lambda calculus was introduced by Church in 1936; the set of terms $\Lambda$ is ranged over by $M$ as: $$
 M \Coloneqq x \mid (\lambda{x}.M') \mid (M' \cdot M'')
@@ -93,7 +95,7 @@ A \emph{statement} is of the form $M\colon{A}$, where $M$ is the subject and $A$
 		} \\
 		\\
 		&(\to\textrm{E}): \Inf{
-			\Gamma \vdash_C M\colon{A\to{B}} \ \ \ \Gamma \vdash_C M'\colon{A}
+			\Gamma \vdash_C M\colon{A\to{B}} \qquad \Gamma \vdash_C M'\colon{A}
 		}{
 			\Gamma \vdash_C MM'\colon{B}
 		}
@@ -133,6 +135,40 @@ As in the untyped $\Lambda$, Curry's system gives a good basis on which to build
 \subsubsection{Algebraic types} \label{bg:types:algebraic}
 
 !TODO
+
+\begin{defn}Subtype \label{def:types:subtype}
+\[
+    A \leq B
+\]
+\end{defn}
+
+$A$ is a subtype of $B$ if it is `included in' $B$.~\cite{on_understanding_types} For example, a record type is a subtype of another if it contains all of its fields; an integer range is a subtype of another that includes it in the usual sense. 
+
+Practically, subtyping means that if we expect a type, say \code{Animal}, we can accept a subtype, \code{Dog}, since anything we can do with the supertype\footnote{As implied, if $A\leq{B}$, we may say $B$ is a supertype of $A$.} can still be done validly with the subtype.
+
+\begin{defn}Covariance\label{def:types:covariance}
+\[
+    \Inf{
+        \theta\overset{\mathrm{cov}_\tau}{\to}\tau \qquad A\leq{B}
+    }{
+        \theta\to{A} \leq \theta\to{B}
+    }
+\]
+\end{defn} 
+
+An instance of a function that is covariant over a type parameter is a sub-type of all other instances for which its parameter is a sub-type of that of the other. This says that if we call a function that we expect to be of type $\mathtt{Blue\to Animal}$, we can accept a function of type $\mathtt{Blue\to Dog}$.
+
+\begin{defn}Contravariance\label{def:types:contravariance}
+\[
+    \Inf{
+        \theta\overset{\mathrm{contra}_\theta}{\to}\tau \qquad A\leq{B}
+    }{
+        B\to\tau \leq A\to\tau
+    }
+\]
+\end{defn} 
+
+In contrast, contravariant functions reverse the sub-typing relation for instances parameterised by sub-types. Contravariance is typically seen in function input types:~\cite{rust_nomicon} if a function call uses an argument of type \code{Blue} and expects type \code{Dog} in return, then both signatures $\mathtt{Blue\to Dog}$ and $\mathtt{Colour\to Dog}$ can be accepted. \cite{on_understanding_types}
 
 \subsubsection{$\pi$-calculus and session types} \label{bg:types:session}
 

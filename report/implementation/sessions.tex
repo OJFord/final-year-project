@@ -6,7 +6,7 @@ During the course of implementation however, and since this project's interim re
 
 As noted in~\cref{bg:rust:compiler-services}, the compiler's type and borrow checkers may be viewed as tools with which the programmer stops himself from committing all manner of human err. In generating code with arguments and responses strongly typed to match the API schema, \emph{tapioca} leans on the type-checker to perform the unification and ensure that the types sent and expected in response by the programmer conform to the schema.~\cfref{impl:inference} Analogously, on re-evaluating the approach, it made sense to leverage the borrow-checker for analysing stateful interactions.
 
-We can model a system of dependency between potential requests, over which we wish to check actualised requests, as a directed acyclic graph (DAG) $\langle{R,E}\rangle$: directed because we have a request $r_1$ that depends on a request $r_2$; acyclic because any well-formed\footnote{and all bets are already off for malformed APIs or schemata} API clearly does not have a set of requests $R$ for which any two depend on each other - viz.:\[
+We can model a system of dependency between potential requests, over which we wish to check actualised requests, as a directed acyclic graph (DAG) $\langle{R,E}\rangle$: directed because we have a request $r_1$ that depends on a request $r_2$; acyclic because any well-formed\footnote{all bets are already off for malformed APIs or schemata} API clearly does not have a set of requests $R$ for which any two depend on each other - viz.:\[
 \nexists{\{r_1,r_2\}\subseteq{R}}\colon\quad
 (r_1, r_2)\in{E} \;\wedge\; (r_2, r_1)\in{E}
 \]
@@ -24,3 +24,113 @@ r_1 <_{S} r_2 \;\implies\; r_2 \nless_{E} r_1
 \] in other words, it is valid only if it contains no ordered pair of requests which the DAG - constructed from the schema - holds in the reverse order.
 
 This model is resemblant of \emph{rust} lifetimes; by attaching a lifetime to the aspect of a request $r_1$ that is depended upon by $r_2$, and requiring that lifetime when making the latter request, the borrow-checker will do the work of ensuring $r_1 <_{S} r_2$ holds for us.
+
+At this point, it is helpful to consider a specific example of a request sequence that we wish to prevent. A RESTful \cfref{bg:rest+json} API offering a collection \code{/sensors} might offer the ability to instantiate a new `sensor' resource, and to read or remove a specific sensor. An extract of a schema for this API is given by~\cref{code:OAS:basic-rest}.
+
+\begin{codelisting}{code:OAS:basic-rest}{Schema extract for a simple CRD API}
+\begin{spacing}{\codespacing}
+\begin{minted}[tabsize=2]{yaml}
+paths:
+  /sensors:
+    create:
+      responses:
+        201:
+          description: "Sensor created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sensor"
+  /sensors/{id}:
+    get:
+      parameters:
+        - id:
+          in: path
+          schema:
+            $ref: "#/components/schemas/SensorID"
+      responses:
+        200:
+          description: "Sensor state"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sensor"
+    delete:
+      parameters:
+        - id:
+          in: path
+          schema:
+            $ref: "#/components/schemas/SensorID"
+      responses:
+        204:
+          description: "Sensor deleted"
+\end{minted}
+\end{spacing}
+\end{codelisting}
+
+\Cref{fig:impl:sessions:get-after-delete} depicts a clearly invalid use of this API: the sequence tries to read a resource after having removed it. This is analogous to `use-after-free' errors prevalent in languages without garbage collection, and without \emph{rust}'s \emph{borrowck} to check lifetimes of `borrowed' references.
+
+\begin{figure}[!ht]
+    \centering
+    \tikzstyle{request}=[draw, minimum size=4.5em]
+    \tikzstyle{get} = [pin edge={-to,thin,black}]
+    \tikzstyle{set} = [pin edge={to-,thin,black}]
+    \begin{tikzpicture}[node distance=3.5cm,auto,>=latex']
+        \node (a) [left of=b,node distance=2cm, coordinate] {b};
+    
+        \node [request, pin={[get]below:{
+            $a \gets \mathtt{response.body.id}$
+        }}] (b) {\parbox{4.5em}{\centering
+            \code{CREATE\ /sensors}
+        }};
+
+        \node [request, pin={[set]below:{
+            $\mathtt{id} \gets a$
+        }}] (c) [right of=b] {\parbox{6.5em}{\centering
+            \code{DELETE\ /sensors/\{id\}}
+        }};
+        
+        \node [request, pin={[set]below:{
+            $\mathtt{id} \gets a$
+        }}] (d) [right of=c] {\parbox{6.5em}{\centering
+            \code{GET\ /sensors/\{id\}}
+        }};
+        
+        \node [coordinate] (end) [right of=d, node distance=2cm]{};
+        \path[->] (a) edge node {} (b);
+        \path[->] (b) edge node {} (c);
+        \path[->] (c) edge node {} (d);
+        \path[->] (d) edge node {} (end);
+    \end{tikzpicture}
+    \caption{Invalid request sequence: `\code{GET} after \code{DELETE}' results in \code{410 Gone}}
+    \label{fig:impl:sessions:get-after-delete}
+\end{figure}
+
+In fact, \emph{borrowck} is itself a lint pass over MIR;~\cite{borrowck} so we can circumvent the problematic removal of the public interface to MIR by supplying \emph{borrowck}\footnote{to simplify discussion, we're conflating the borrow and drop-checkers (\emph{dropck}) throughout this section: \emph{dropck} stops destructors using a borrowed value that might be dropped first.~\cite{rust_nomicon}} with additional information, and then letting it run as usual - which is arguably a neater solution than adding a custom MIR pass (as initially proposed,~\cite{interim} c.f.~\cref{impl:proposal:validation}) anyway.
+
+Thus, the idea to prevent the invalid sequence of~\cref{fig:impl:sessions:get-after-delete} is to have the function generated for the \code{DELETE} request \mintinline{rust}{drop(a)}; then \emph{rustc} will refuse to compile a subsequent request using it.
+
+Supposing the API also provides \code{/sensors/{id}/readings} collections - that is, a collection of sensor readings for each sensor - then attempting to read or create new readings may result in a \code{424 Failed Dependency} error, indicating that the server failed to service the request because of another failure, perhaps to \code{GET /sensors/\{id\}}.
+
+This could be prevented by requiring that the \code{id} has either \mintinline{rust}{'static} lifetime, which could be the case if the device was factory-provisioned with an identifier, or is from an earlier request to \code{CREATE} the sensor, or confirm a value obtained elsewhere with a \code{HEAD} request.
+
+In terms of our DAG model of request dependencies, this check on a single request, $r_1$, corresponds to verifying that either there exists a topological ordering in which $r_1$ is first, or $r_1$ is disconnected. More simply: \[
+\nexists{r_2\in{R}}\colon\quad (r_2, r_1) \in{E}
+\]
+
+The implementation is a tuple-struct wrapper around the parameter type, with a \mintinline{rust}{from_static(&'static T) -> T} associated function; shown in~\cref{code:rust:id-from-static}. In order to prevent the user inadvertently bypassing the safety this affords by having multiple instances around, the wrapper type does not implement the \mintinline{rust}{Copy} or \mintinline{rust}{Clone} traits,~\cfref{bg:rust:lang} and the privacy of the element containing the actual value prevents the user from doing so.
+
+\begin{codelisting}{code:rust:id-from-static}{Resource IDs parameters in paths have their own type, to ensure the value is derived from a legitimate source}
+\begin{spacing}{\codespacing}
+\begin{minted}[tabsize=4]{rust}
+    quote! {
+        pub struct #resource_struct_ident (#param_type);
+        
+        impl #resource_struct_ident {
+            fn from_static(id: &'static #param_type) -> Self {
+                Self { 0: id.clone() }
+            }
+        }
+    }
+\end{minted}
+\end{spacing}
+\end{codelisting}

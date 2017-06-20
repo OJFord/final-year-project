@@ -4,20 +4,22 @@
 \usepackage{fvextra}
 \usepackage{csquotes}
 \usepackage[UKenglish]{babel}
-\usepackage[backend=biber,style=numeric]{biblatex}
+\usepackage[backend=biber,style=numeric,sortcites]{biblatex}
 \usepackage{xcolor}
 \usepackage{footnote}
+\usepackage{packages/prooftree}
+\usepackage{packages/derivation}
 % ^ deliberately ordered
-
-\usepackage{includes/derivation}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
+\usepackage[header,page]{appendix}
 \usepackage{booktabs}
-\usepackage{caption}
+\usepackage[textfont=it]{caption}
 \usepackage{cleveref}
 \usepackage{chngpage}
+\usepackage{csvsimple}
 \usepackage[shortlabels]{enumitem}
 \usepackage{mathtools}
 \usepackage{multirow}
@@ -25,25 +27,43 @@
 \usepackage{pifont}
 \usepackage{placeins}
 \usepackage{setspace}
-\usepackage{tikz}\usetikzlibrary{arrows}
+\usepackage{tikz}
+    \usetikzlibrary{arrows}
+    \usetikzlibrary{positioning}
+    \usetikzlibrary{shapes}
+\usepackage{url}
 \usepackage{xparse}
 
 \newtheorem{defn}{Definition}
 
 \NewDocumentEnvironment{codelisting}{mm}{\captionsetup{type=listing}}{
-    \captionof{listing}{\emph{#2}}
+    \captionof{listing}{#2}
     \label{#1}
 }
+\AtBeginEnvironment{minted}{
+    % no red boxes on parse error
+    \renewcommand{\fcolorbox}[4][]{#4}
+}
+\AtEveryCite{\normalfont}
+
 \newcommand{\codespacing}{1.0}
 \newcommand{\tblspacing}{1.1}
 
+\renewcommand{\thesection}{}
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
 \makeatletter
-\renewcommand\thesection{}
-\renewcommand\thesubsection{\@arabic\c@section.\@arabic\c@subsection}
+\def\@seccntformat#1{\csname #1ignore\expandafter\endcsname\csname the#1\endcsname\quad}
+\let\sectionignore\@gobbletwo
+\let\latex@numberline\numberline
+\def\numberline#1{\if\relax#1\relax\else\latex@numberline{#1}\fi}
 \makeatother
 
 \crefformat{section}{\S#2#1#3}
 \crefmultiformat{section}{\S#2#1#3}{and~\S#2#1#3}{,~\S#2#1#3}{, and~\S#2#1#3}
+\Crefname{appx}{Appendix}{Appendices}
+\crefname{appx}{appendix}{appendices}
+\Crefname{anx}{Annex}{Annexes}
+\Crefname{anx}{annex}{annexes}
 \newcommand{\cfref}[1]{(cf.~\cref{#1})}
 
 \newcommand{\code}[1]{\texttt{#1}}
@@ -52,6 +72,13 @@
 \newcommand{\xmark}{\ding{55}}
 
 \addbibresource{Zotero.bib}
+\DeclareBibliographyAlias{audio}{online}
+\DeclareBibliographyAlias{software}{online}
+\DeclareSourcemap{\maps[datatype=bibtex, overwrite]{\map{
+    \step[fieldset=urldate, null]
+}}}
+\setcounter{biburllcpenalty}{7000}
+\setcounter{biburlucpenalty}{8000}
 
 \title{Static analysis for API error detection in IoT devices}
 \author{Ford, O.J.}
@@ -68,7 +95,10 @@
 \pagenumbering{roman}
 
 \include{frontmatter/coversheet}
+\begin{spacing}{1.25}
 \include{frontmatter/abstract}
+\include{frontmatter/ack}
+\end{spacing}
 
 \begin{spacing}{0.8}
 \tableofcontents
@@ -76,7 +106,6 @@
 \clearpage
 
 \pagenumbering{arabic}
-
 \begin{spacing}{1.4}
 \include{introduction/main}
 \include{solutions/main}
@@ -84,6 +113,22 @@
 \include{implementation/main}
 \include{evaluation/main}
 \include{conclusions/main}
+\end{spacing}
+\cleardoublepage
+
+\pagestyle{headings}
+\pagenumbering{gobble}
+\begin{spacing}{1.4}
+\begin{appendices}
+% true appendices
+\renewcommand{\appendixname}{Appx.}
+\crefalias{section}{appx}
+\include{appendices/questionnaire}
+% annexes
+\renewcommand{\appendixname}{Annex}
+\crefalias{section}{anx}
+\include{appendices/user-guide}
+\end{appendices}
 \end{spacing}
 
 \printbibliography

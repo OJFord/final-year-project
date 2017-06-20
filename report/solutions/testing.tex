@@ -1,0 +1,18 @@
+\subsection{Testing} \label{soln:testing}
+
+Unit testing is well suited and easily applied to client applications using web APIs.~\cite{front_backend_testing} The application logic will undoubtedly make some assumptions about the API's behaviour, and we can go some way both to verify these assumptions, and to check the client's own behaviour, with `solitary' unit tests. \cite{unit_testing}
+
+Solitary unit tests, as opposed to `sociable' tests,~\cite{unit_testing} are isolated from the behaviour of other parts of a system in order to test behaviour under the assumption that the rest is functioning correctly. This can be achieved through `mocking' the implementation of other components, so that when called their return is defined by the test, and is reproducible. \cite{solitary_unit_testing, mocking}
+
+In the context of our client, we would write solitary tests of our own logic, mocking the API requests to respond with the status code and body that we believe they should, and also of the API, to confirm that it's response does match our expectation. The combination of these tests' success will suggest that the system as a whole will function as intended: our logic succeeds given expected data, and the API seems to give us the expected data.~\cfref{bg:verification:dbc}
+
+Testing does a good job of verifying basic assumptions, and catching regression in a previously functional application. The problem with it is best described by Dijkstra:
+\begin{quote}
+Testing shows the presence, not the absence of bugs. \cite{dijkstra_quote}
+\end{quote}\rightline{\rm --- Professor E.W. Dijkstra}
+
+That is, a successful test suite means only that there is not sufficient test coverage to find a bug; not that one does not exist.
+
+Fuzzing is a technique that goes some way to prevent the most obvious cause of this problem: that the data supplied to functions under test is fixed.~\cite{fuzz} Instead of fixing this data, it can be `fuzzed' - viz. replaced with different contents, but of the same structure. The fuzzed contents may be entirely random, or designed to expose problems by containing interesting values such as $0,1$; excerpts of valid SQL statements, regular expression strings, or other slightly odd or malformed data. \cite{fuzzing}
+
+Fuzzing offers a considerable improvement over standard testing in some applications, such as compiler testing where some code paths will be seldom followed in real use, and which may consequently be neglected in manually written test cases. \cite{taming_fuzzers} Fuzzers still do not show the absence of bugs, though, they merely do a better job of showing their presence.

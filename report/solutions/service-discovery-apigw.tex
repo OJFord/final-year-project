@@ -1,0 +1,57 @@
+\subsection{Service discovery \& API gateways} \label{soln:sd+apigw}
+
+Service discovery mechanisms are a common pattern in Service-Oriented (or micro-service) Architectures~\cite{service_discovery_linkerd, service_discovery_consul, service_discovery_apache} (SOA) that allow dynamically managed\footnote{A service discovery system might be viewed as the extension of a traditional load-balancer to a system with ephemeral virtual servers unfixed in number and too frequently changing to be `registered' manually.}, and usually virtually hosted~\cite{service_discovery_nginx} services to `discover' one another like a plumber looking up an electrician in the \emph{Yellow Pages}. The service registry may also be exposed to clients, such that the internal destination for requests may be easily changed over time, or according to versioning information embedded in the request.
+
+Service registries are not intended to validate requests, but they could be used as or in tandem with an API gateway in order to deliver requests to a truly micro (virtual) server servicing specifically the requested operation, and to reject requests for which there was no correspondingly registered operation. \cite{microservice_patterns}
+
+\emph{AWS} offers one such API gateway, which can be configured to map requests to a particular service, adding or removing data as required, before returning the (possibly also modified) response to the client. The gateway will reject any request not conforming to one of it's input models, which can greatly reduce the burden of validation on the endpoint server. \cite{service_discovery_nginx, aws_apigw_docs}
+
+\begin{figure}[!ht]
+    \centering
+    \begin{tikzpicture}[>=latex']
+        \node[draw,rectangle]
+            (client) at (0,0) {Client};
+    
+        \node[draw,ellipse,right=2cm of client]
+            (apigw) {API gateway};
+            
+        \node[draw,ellipse,below right=1cm and 0cm of apigw]
+            (reg) {Service registry};
+    
+        \node[draw,ellipse,above right=3cm and 0cm of reg]
+            (svcA) {$\mu$-service A};
+    
+        \node[draw,ellipse,above right=1cm and 0cm of reg]
+            (svcZ) {$\mu$-service Z};
+        \path[draw,dotted]
+            (svcA) edge (svcZ);
+            
+        \path[draw,red]
+            (client.10)
+            edge[->] node[above] {\code{GET /pet}}
+            (apigw.176);
+        \path[draw,dashed,red]
+            (apigw)
+            edge[bend right,->] node[left] {\code{pet-getter?}}
+            (reg);
+        \path[draw,dashed,red]
+            (reg)
+            edge[bend right,->] node[left] {\code{\&A}}
+            (apigw);
+        \path[draw,dashed,red]
+            (apigw.45) edge[->] (svcA.200);
+        
+        \path[draw,dashed,blue]
+            (svcA.215)
+            edge[->] node[below] {\mintinline{json}|"dog"|}
+            (apigw.25);
+        \path[draw,blue]
+            (apigw.184)
+            edge[->] node[below] {\mintinline{json}{{"pet":"dog"}}} 
+            (client.350);
+    \end{tikzpicture}
+    \caption{Example SOA using an API gateway and service registry}
+    \label{fig:sd+apigw:architecture}
+\end{figure}
+
+\Cref{fig:sd+apigw:architecture} depicts how such a scheme might work in practice: a client requests a `\code{pet}' resource, and the API gateway services this request without knowing ahead of time where the `\code{pet-getter}' service resides. Further, since the endpoint service exclusively `gets pets', the path `\code{/pet}' and semantics of the \code{GET} method~\cfref{bg:rest+json} would be redundant, and are not expected; the API gateway also performs the translation between the publicly documented API and the internal API of each service.
